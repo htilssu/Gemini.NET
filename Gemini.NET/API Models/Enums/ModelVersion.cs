@@ -37,7 +37,7 @@ namespace Models.Enums
         /// Preview version of a lightweight, fast model.
         /// Ideal for simple tasks requiring minimal resource usage.
         /// </summary>
-        [Description("gemini-2.0-flash-lite-preview-02-05")]
+        [Description("gemini-2.0-flash-lite")]
         Gemini_20_Flash_Lite,
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Models.Enums
         /// Experimental version optimized for reasoning tasks.
         /// Best for applications requiring complex analysis and decision-making.
         /// </summary>
-        [Description("gemini-2.0-flash-thinking-exp")]
+        [Description("gemini-2.0-flash-thinking-exp-01-21")]
         Gemini_20_Flash_Thinking,
 
         /// <summary>
