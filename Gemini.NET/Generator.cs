@@ -40,12 +40,12 @@ namespace Gemini.NET
             var apiRequest = new ApiRequestBuilder()
                 .WithPrompt("Say `Hello World` to me!")
                 .DisableAllSafetySettings()
-                .WithDefaultGenerationConfig(0.2F)
+                .WithDefaultGenerationConfig()
                 .Build();
 
             try
             {
-                await GenerateContentAsync(apiRequest, ModelVersion.Gemini_20_Flash_Lite).ConfigureAwait(false);
+                await GenerateContentAsync(apiRequest, ModelVersion.Gemini_15_Flash).ConfigureAwait(false);
                 return true;
             }
             catch
