@@ -113,20 +113,25 @@ namespace Gemini.NET
         /// Sets the default generation configuration for the API request.
         /// </summary>
         /// <param name="temperature">The sampling temperature to set.</param>
-        /// <param name="responseMimeType">The response MIME type to set.</param>
+        /// <param name="maxOutputTokens">The maximum number of tokens in the generated output.</param>
         /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the temperature is out of the valid range (0.0 to 2.0).</exception>
-        public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1, ResponseMimeType responseMimeType = ResponseMimeType.PlainText)
+        public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1, int maxOutputTokens = 8192)
         {
             if (temperature < 0.0F || temperature > 2.0F)
             {
                 throw new ArgumentOutOfRangeException(nameof(temperature), "Temperature must be between 0.0 and 2.0.");
             }
 
+            if (maxOutputTokens < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxOutputTokens), "Max output tokens must be greater than 0.");
+            }
+
             _config = new GenerationConfig
             {
                 Temperature = temperature,
-                ResponseMimeType = EnumHelper.GetDescription(responseMimeType),
+                MaxOutputTokens = maxOutputTokens
             };
 
             return this;

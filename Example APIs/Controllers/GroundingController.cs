@@ -11,21 +11,17 @@ namespace Example_APIs.Controllers
         [HttpPost("GenerationWithGrounding")]
         public async Task<IActionResult> GenerateContentWithGrounding(string apiKey, string prompt)
         {
-            var generatorWithApiKey = new Generator(apiKey)
-                .IncludesGroundingDetailInResponse()
-                .IncludesSearchEntryPointInResponse();
+            var generatorWithApiKey = new Generator(apiKey);
 
             var apiRequest = new ApiRequestBuilder()
                 .WithPrompt(prompt)
-                .EnableGrounding()
-                .WithChatHistory(new List<ChatMessage>())
                 .WithDefaultGenerationConfig()
                 .DisableAllSafetySettings()
                 .Build();
 
             try
             {
-                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Generator.GetLatestStableModelVersion());
+                var response = await generatorWithApiKey.GenerateContentAsync<ChatMessage>(apiRequest, Generator.GetLatestStableModelVersion());
                 return Ok(response);
             }
             catch (Exception ex)

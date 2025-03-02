@@ -15,7 +15,10 @@ namespace Gemini.NET.Helpers
         /// <returns>A JSON string representation of the object.</returns>
         public static string AsString<T>(T obj)
         {
-            return JsonConvert.SerializeObject(obj, Formatting.Indented);
+            return JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
         }
 
         /// <summary>

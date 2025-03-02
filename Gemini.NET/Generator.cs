@@ -192,8 +192,6 @@ namespace Gemini.NET
                         var dto = JsonHelper.AsObject<Models.Response.Success.ApiResponse>(responseData);
                         var groudingMetadata = dto.Candidates[0].GroundingMetadata;
 
-                        Console.WriteLine(responseData);
-
                         return new ModelResponse
                         {
                             Result = dto.Candidates[0].Content != null
@@ -230,6 +228,53 @@ namespace Gemini.NET
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Failed to send request to Gemini: {ex.Message}\n{json}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Generates content based on the provided API request and returns the result as the specified type.
+        /// </summary>
+        /// <typeparam name="T">Type of the generated object </typeparam>
+        /// <param name="request"></param>
+        /// <param name="modelVersion"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        public async Task<T?> GenerateContentAsync<T>(ApiRequest request, ModelVersion modelVersion = ModelVersion.Gemini_15_Flash)
+        {
+            if (!Validator.SupportsJsonOutput(modelVersion))
+            {
+                throw new ArgumentNullException(nameof(request), "JSON output is not supported for this model version.");
+            }
+
+            if (request.Tools != null && request.Tools.Count > 0)
+            {
+                throw new InvalidOperationException("JSON output is not supported for Grounding.");
+            }
+
+            try
+            {
+                if (request.GenerationConfig == null)
+                {
+                    request.GenerationConfig = new GenerationConfig
+                    {
+                        ResponseMimeType = EnumHelper.GetDescription(ResponseMimeType.Json),
+                        ResponseSchema = OpenApiSchemaGenerator.AsOpenApiSchema<T>(),
+                    };
+                }
+                else
+                {
+                    request.GenerationConfig.ResponseMimeType = EnumHelper.GetDescription(ResponseMimeType.Json);
+                    request.GenerationConfig.ResponseSchema = OpenApiSchemaGenerator.AsOpenApiSchema<T>();
+                }
+
+                var response = await GenerateContentAsync(request, modelVersion);
+
+                return JsonHelper.AsObject<T>(response.Result);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to generate content: {ex.Message}", ex);
             }
         }
 

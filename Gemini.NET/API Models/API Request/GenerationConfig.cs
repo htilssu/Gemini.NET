@@ -51,5 +51,8 @@ namespace Models.Request
         /// </summary>
         [JsonProperty("responseMimeType")]
         public string ResponseMimeType { get; set; } = EnumHelper.GetDescription(Enums.ResponseMimeType.PlainText);
+
+        [JsonProperty("responseSchema")]
+        public ResponseSchema? ResponseSchema { get; set; }
     }
 }
