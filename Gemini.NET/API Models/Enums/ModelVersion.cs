@@ -41,20 +41,19 @@ namespace Models.Enums
         Gemini_20_Flash_Lite,
 
         /// <summary>
-        /// Gemini 2.0 Pro model version.
-        /// Experimental pro version with advanced capabilities.
-        /// Suitable for complex tasks requiring cutting-edge features.
-        /// </summary>
-        [Description("gemini-2.0-pro-exp-02-05")]
-        Gemini_20_Pro,
-
-        /// <summary>
         /// Gemini 2.0 Flash Thinking model version.
         /// Experimental version optimized for reasoning tasks.
         /// Best for applications requiring complex analysis and decision-making.
         /// </summary>
         [Description("gemini-2.0-flash-thinking-exp-01-21")]
         Gemini_20_Flash_Thinking,
+
+        /// <summary>
+        /// Gemini 2.5 Pro model version.
+        /// Best for complex tasks requiring high-quality outputs.
+        /// </summary>
+        [Description("gemini-2.5-pro-exp-03-25")]
+        Gemini_25_Pro,
 
         /// <summary>
         /// Gemini 2.0 Flash model version.

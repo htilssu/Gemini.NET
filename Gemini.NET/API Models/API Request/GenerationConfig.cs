@@ -53,6 +53,6 @@ namespace Models.Request
         public string ResponseMimeType { get; set; } = EnumHelper.GetDescription(Enums.ResponseMimeType.PlainText);
 
         [JsonProperty("responseSchema")]
-        public ResponseSchema? ResponseSchema { get; set; }
+        public object? ResponseSchema { get; set; }
     }
 }

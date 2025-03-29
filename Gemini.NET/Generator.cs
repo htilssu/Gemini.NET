@@ -159,9 +159,14 @@ namespace Gemini.NET
                 throw new ArgumentNullException(nameof(request), "Grounding is not supported for this model version.");
             }
 
-            if (request.GenerationConfig.ResponseMimeType == EnumHelper.GetDescription(ResponseMimeType.Json) && !Validator.SupportsJsonOutput(modelVersion))
+            if (request.GenerationConfig?.ResponseMimeType == EnumHelper.GetDescription(ResponseMimeType.Json) && !Validator.SupportsJsonOutput(modelVersion))
             {
                 throw new ArgumentNullException(nameof(request), "JSON output is not supported for this model version.");
+            }
+
+            if (request.GenerationConfig?.ResponseSchema != null && !Validator.SupportsJsonOutput(modelVersion))
+            {
+                throw new ArgumentNullException(nameof(request), "Choose the model version that support JSON output or remove the ResponseSchema");
             }
 
             var endpoint = $@"{_apiEndpointPrefix}/{EnumHelper.GetDescription(modelVersion)}:generateContent";
@@ -232,52 +237,86 @@ namespace Gemini.NET
         }
 
         /// <summary>
-        /// Generates content based on the provided API request and returns the result as the specified type.
+        /// Generates content based on the provided API request and the specific model alias.
         /// </summary>
-        /// <typeparam name="T">Type of the generated object </typeparam>
         /// <param name="request"></param>
-        /// <param name="modelVersion"></param>
+        /// <param name="modelAlias">The alias of the Gemini model</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<T?> GenerateContentAsync<T>(ApiRequest request, ModelVersion modelVersion = ModelVersion.Gemini_15_Flash)
+        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, string modelAlias)
         {
-            if (!Validator.SupportsJsonOutput(modelVersion))
+            if (string.IsNullOrEmpty(modelAlias))
             {
-                throw new ArgumentNullException(nameof(request), "JSON output is not supported for this model version.");
+                throw new ArgumentNullException(nameof(modelAlias), "Model alias is required.");
             }
 
-            if (request.Tools != null && request.Tools.Count > 0)
+            var endpoint = $@"{_apiEndpointPrefix}/{modelAlias}:generateContent";
+
+            if (!string.IsNullOrEmpty(_apiKey))
             {
-                throw new InvalidOperationException("JSON output is not supported for Grounding.");
+                endpoint += $"?key={_apiKey}";
+                _client.DefaultRequestHeaders.Clear();
             }
+
+            var json = JsonHelper.AsString(request);
+            var body = new StringContent(json, Encoding.UTF8, "application/json");
 
             try
             {
-                if (request.GenerationConfig == null)
+                var response = await _client.PostAsync(endpoint, body).ConfigureAwait(false);
+                var responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                try
                 {
-                    request.GenerationConfig = new GenerationConfig
+                    if (!response.IsSuccessStatusCode)
                     {
-                        ResponseMimeType = EnumHelper.GetDescription(ResponseMimeType.Json),
-                        ResponseSchema = OpenApiSchemaGenerator.AsOpenApiSchema<T>(),
-                    };
+                        var dto = JsonHelper.AsObject<Models.Response.Failed.ApiResponse>(responseData);
+                        throw new InvalidOperationException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}");
+                    }
+                    else
+                    {
+                        var dto = JsonHelper.AsObject<Models.Response.Success.ApiResponse>(responseData);
+                        var groudingMetadata = dto.Candidates[0].GroundingMetadata;
+
+                        return new ModelResponse
+                        {
+                            Result = dto.Candidates[0].Content != null
+                                ? dto.Candidates[0].Content.Parts[0].Text.Trim()
+                                : "Failed to generate content",
+                            GroundingDetail = groudingMetadata != null && _includesGroundingDetailInResponse
+                                ? new GroundingDetail
+                                {
+                                    RenderedContentAsHtml = _includesSearchEntryPointInResponse
+                                        ? groudingMetadata?.SearchEntryPoint?.RenderedContent
+                                        : null,
+                                    SearchSuggestions = groudingMetadata?.WebSearchQueries,
+                                    ReliableInformation = groudingMetadata?.GroundingSupports?
+                                        .OrderByDescending(s => s.ConfidenceScores.Max())
+                                        .Select(s => s.Segment.Text)
+                                        .ToList(),
+                                    Sources = groudingMetadata?.GroundingChunks?
+                                        .Select(c => new GroundingSource
+                                        {
+                                            Domain = c.Web.Title,
+                                            Url = c.Web.Uri,
+                                        })
+                                        .ToList(),
+                                }
+                                : null,
+                        };
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    request.GenerationConfig.ResponseMimeType = EnumHelper.GetDescription(ResponseMimeType.Json);
-                    request.GenerationConfig.ResponseSchema = OpenApiSchemaGenerator.AsOpenApiSchema<T>();
+                    throw new InvalidOperationException($"Failed to parse response from JSON:\n{responseData}", ex);
                 }
-
-                var response = await GenerateContentAsync(request, modelVersion);
-
-                return JsonHelper.AsObject<T>(response.Result);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to generate content: {ex.Message}", ex);
+                throw new InvalidOperationException($"Failed to send request to Gemini: {ex.Message}\n{json}", ex);
             }
         }
-
 
         /// <summary>
         /// Gets the latest stable model version of Gemini.

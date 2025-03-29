@@ -195,6 +195,23 @@ namespace Gemini.NET
         }
 
         /// <summary>
+        /// Sets the response schema for the API request that strictly follows the OpenAPI specification.
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public ApiRequestBuilder WithResponseSchema(object schema)
+        {
+            if (_config == null)
+            {
+                _config = new GenerationConfig();
+            }
+
+            _config.ResponseSchema = schema;
+            _config.ResponseMimeType = EnumHelper.GetDescription(ResponseMimeType.Json);
+            return this;
+        }
+
+        /// <summary>
         /// Builds the API request with the configured parameters.
         /// </summary>
         /// <returns>The constructed <see cref="ApiRequest"/>.</returns>

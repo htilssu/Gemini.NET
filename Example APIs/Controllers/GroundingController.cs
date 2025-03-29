@@ -1,5 +1,4 @@
 ﻿using Gemini.NET;
-using Gemini.NET.Client_Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers
@@ -21,7 +20,7 @@ namespace Example_APIs.Controllers
 
             try
             {
-                var response = await generatorWithApiKey.GenerateContentAsync<ChatMessage>(apiRequest, Generator.GetLatestStableModelVersion());
+                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Generator.GetLatestStableModelVersion());
                 return Ok(response);
             }
             catch (Exception ex)
