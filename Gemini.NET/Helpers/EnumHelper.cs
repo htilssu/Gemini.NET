@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 
-namespace Gemini.NET.Helpers
+namespace GeminiDotNET.Helpers
 {
     /// <summary>
     /// Helper class for enum operations

@@ -1,7 +1,7 @@
-﻿using Gemini.NET.API_Models.Enums;
-using Gemini.NET.Client_Models;
+﻿using GeminiDotNET.API_Models.Enums;
+using GeminiDotNET.Client_Models;
 
-namespace Gemini.NET.Helpers
+namespace GeminiDotNET.Helpers
 {
     /// <summary>
     /// Helper class for image operations

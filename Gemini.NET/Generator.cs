@@ -1,11 +1,11 @@
-﻿using Gemini.NET.Client_Models;
-using Gemini.NET.Helpers;
+﻿using GeminiDotNET.Client_Models;
+using GeminiDotNET.Helpers;
 using Models.Enums;
 using Models.Request;
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace Gemini.NET
+namespace GeminiDotNET
 {
     public class Generator
     {
@@ -199,7 +199,7 @@ namespace Gemini.NET
 
                         return new ModelResponse
                         {
-                            Result = dto.Candidates[0].Content != null
+                            Content = dto.Candidates[0].Content != null
                                 ? dto.Candidates[0].Content.Parts[0].Text.Trim()
                                 : "Failed to generate content",
                             GroundingDetail = groudingMetadata != null && _includesGroundingDetailInResponse
@@ -281,7 +281,7 @@ namespace Gemini.NET
 
                         return new ModelResponse
                         {
-                            Result = dto.Candidates[0].Content != null
+                            Content = dto.Candidates[0].Content != null
                                 ? dto.Candidates[0].Content.Parts[0].Text.Trim()
                                 : "Failed to generate content",
                             GroundingDetail = groudingMetadata != null && _includesGroundingDetailInResponse

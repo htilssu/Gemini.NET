@@ -1,4 +1,5 @@
 ﻿using Gemini.NET.API_Models.API_Request;
+using GeminiDotNET.API_Models.API_Request;
 using Newtonsoft.Json;
 
 namespace Models.Shared
@@ -21,5 +22,11 @@ namespace Models.Shared
         /// </summary>
         [JsonProperty("inline_data")]
         public InlineData? InlineData { get; set; }
+
+        /// <summary>
+        /// (Optional) The file data for this part, contains the media content
+        /// </summary>
+        [JsonProperty("file_data")]
+        public FileData? FileData { get; set; }
     }
 }

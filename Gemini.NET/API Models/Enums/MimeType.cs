@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Gemini.NET.API_Models.Enums
+namespace GeminiDotNET.API_Models.Enums
 {
     /// <summary>
     /// The media type of the file specified in the Inline Data

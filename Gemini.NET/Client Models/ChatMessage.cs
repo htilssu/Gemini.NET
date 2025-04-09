@@ -1,6 +1,6 @@
 ﻿using Models.Enums;
 
-namespace Gemini.NET.Client_Models
+namespace GeminiDotNET.Client_Models
 {
     public class ChatMessage
     {

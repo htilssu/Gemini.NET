@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Gemini.NET.Helpers
+namespace GeminiDotNET.Helpers
 {
     /// <summary>
     /// Helper class for JSON operations

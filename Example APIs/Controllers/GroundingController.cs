@@ -1,4 +1,4 @@
-﻿using Gemini.NET;
+﻿using GeminiDotNET;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers

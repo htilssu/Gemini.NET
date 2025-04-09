@@ -1,11 +1,13 @@
 ﻿using Gemini.NET.API_Models.API_Request;
-using Gemini.NET.Client_Models;
-using Gemini.NET.Helpers;
+using GeminiDotNET.API_Models.API_Request;
+using GeminiDotNET.API_Models.Enums;
+using GeminiDotNET.Client_Models;
+using GeminiDotNET.Helpers;
 using Models.Enums;
 using Models.Request;
 using Models.Shared;
 
-namespace Gemini.NET
+namespace GeminiDotNET
 {
     /// <summary>
     /// Builder class for constructing API requests to the Gemini service.
@@ -20,6 +22,7 @@ namespace Gemini.NET
         private IEnumerable<SafetySetting>? _safetySettings;
         private List<Content>? _chatHistory;
         private IEnumerable<ImageData>? _images;
+        private FileData? _file;
 
         /// <summary>
         /// Sets the system instruction for the API request.
@@ -211,6 +214,17 @@ namespace Gemini.NET
             return this;
         }
 
+        public ApiRequestBuilder WithUploadedFile(string fileUri, MimeType mimeType)
+        {
+            _file = new FileData
+            {
+                MimeType = EnumHelper.GetDescription(mimeType),
+                FileUri = fileUri
+            };
+
+            return this;
+        }
+
         /// <summary>
         /// Builds the API request with the configured parameters.
         /// </summary>
@@ -239,6 +253,18 @@ namespace Gemini.NET
                             }
                         })
                         .ToList(),
+                    Role = EnumHelper.GetDescription(Role.User),
+                });
+            }
+
+            if (_file != null)
+            {
+                contents.Add(new Content
+                {
+                    Parts = [ new Part
+                    {
+                        FileData = _file
+                    } ],
                     Role = EnumHelper.GetDescription(Role.User),
                 });
             }

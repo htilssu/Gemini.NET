@@ -1,4 +1,4 @@
-﻿namespace Gemini.NET.Client_Models
+﻿namespace GeminiDotNET.Client_Models
 {
     /// <summary>
     /// The response with a result and optional grounding details.
@@ -6,9 +6,9 @@
     public class ModelResponse
     {
         /// <summary>
-        /// The response of Gemini.
+        /// The response content of Gemini.
         /// </summary>
-        public required string Result { get; set; }
+        public required string Content { get; set; }
 
         /// <summary>
         /// The grounding details of the response.

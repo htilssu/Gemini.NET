@@ -1,4 +1,4 @@
-using Gemini.NET;
+using GeminiDotNET;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers
@@ -22,7 +22,7 @@ namespace Example_APIs.Controllers
             try
             {
                 var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Generator.GetLatestStableModelVersion());
-                return Ok(response.Result);
+                return Ok(response.Content);
             }
             catch (Exception ex)
             {
@@ -45,7 +45,7 @@ namespace Example_APIs.Controllers
             try
             {
                 var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Generator.GetLatestStableModelVersion());
-                return Ok(response.Result);
+                return Ok(response.Content);
             }
             catch (Exception ex)
             {
