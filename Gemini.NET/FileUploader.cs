@@ -113,7 +113,6 @@ namespace GeminiDotNET
             return fileUri!;
         }
 
-
         private async Task WaitForFileToBeActiveAsync(JsonElement fileElement, CancellationToken cancellationToken, int delayTimeInSecond = 5)
         {
             if (!fileElement.TryGetProperty("name", out var nameElement))
@@ -170,7 +169,6 @@ namespace GeminiDotNET
 
             return null;
         }
-
 
         private static string GetMimeType(string filePath)
         {

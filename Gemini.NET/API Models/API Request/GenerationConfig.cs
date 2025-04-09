@@ -50,7 +50,7 @@ namespace Models.Request
         /// Default value is text/plain.
         /// </summary>
         [JsonProperty("responseMimeType")]
-        public string ResponseMimeType { get; set; } = EnumHelper.GetDescription(Enums.ResponseMimeType.PlainText);
+        internal string ResponseMimeType { get; set; } = EnumHelper.GetDescription(Enums.ResponseMimeType.PlainText);
 
         [JsonProperty("responseSchema")]
         public object? ResponseSchema { get; set; }

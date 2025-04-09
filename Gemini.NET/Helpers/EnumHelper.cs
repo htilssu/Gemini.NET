@@ -6,7 +6,7 @@ namespace GeminiDotNET.Helpers
     /// <summary>
     /// Helper class for enum operations
     /// </summary>
-    public static class EnumHelper
+    internal static class EnumHelper
     {
         /// <summary>
         /// Get the description of an enum value
