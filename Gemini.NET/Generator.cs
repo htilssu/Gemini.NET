@@ -68,13 +68,8 @@ namespace GeminiDotNET
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, ModelVersion modelVersion, double apiTimeOutInSecond = 120)
+        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, ModelVersion modelVersion = ModelVersion.Gemini_20_Flash_Lite, double apiTimeOutInSecond = 120)
         {
-            if (request.Tools != null && request.Tools.Count > 0 && !Validator.SupportsGrouding(modelVersion))
-            {
-                throw new ArgumentNullException(nameof(request), "Grounding is not supported for this model version.");
-            }
-
             return await GenerateContentAsync(request, EnumHelper.GetDescription(modelVersion), apiTimeOutInSecond);
         }
 

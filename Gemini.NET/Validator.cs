@@ -8,21 +8,6 @@ namespace GeminiDotNET
     public static class Validator
     {
         /// <summary>
-        /// Determines if the specified model version supports grounding.
-        /// </summary>
-        /// <param name="modelVersion">The model version to check.</param>
-        /// <returns>True if the model version supports grounding; otherwise, false.</returns>
-        public static bool SupportsGrouding(ModelVersion modelVersion)
-        {
-            var supportedVersions = new List<ModelVersion>
-                {
-                    ModelVersion.Gemini_20_Flash,
-                };
-
-            return supportedVersions.Contains(modelVersion);
-        }
-
-        /// <summary>
         /// Validates if the provided API key is in a valid Gemini API KEY format.
         /// </summary>
         /// <param name="apiKey">The API key to validate.</param>
