@@ -26,5 +26,10 @@ namespace GeminiDotNET.Helpers
             }
             return value.ToString();
         }
+
+        public static IEnumerable<T> GetAllValues<T>()
+        {
+            return Enum.GetValues(typeof(T)).Cast<T>();
+        }
     }
 }

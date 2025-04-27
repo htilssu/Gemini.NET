@@ -13,16 +13,16 @@
         /// <summary>
         /// The list of grounding sources.
         /// </summary>
-        public List<GroundingSource>? Sources { get; set; }
+        public IEnumerable<GroundingSource>? Sources { get; set; }
 
         /// <summary>
         /// The list of reliable information.
         /// </summary>
-        public List<string>? ReliableInformation { get; set; }
+        public IEnumerable<string>? ReliableInformation { get; set; }
 
         /// <summary>
         /// The list of search suggestions.
         /// </summary>
-        public List<string>? SearchSuggestions { get; set; }
+        public IEnumerable<string>? SearchSuggestions { get; set; }
     }
 }

@@ -8,7 +8,7 @@
         /// <summary>
         /// The response content of Gemini.
         /// </summary>
-        public required string Content { get; set; }
+        public required string? Content { get; set; }
 
         /// <summary>
         /// The grounding details of the response.

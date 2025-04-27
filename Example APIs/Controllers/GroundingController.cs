@@ -20,7 +20,7 @@ namespace Example_APIs.Controllers
 
             try
             {
-                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Generator.GetLatestStableModelVersion());
+                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Models.Enums.ModelVersion.Gemini_20_Flash_Lite);
                 return Ok(response);
             }
             catch (Exception ex)

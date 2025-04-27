@@ -23,21 +23,6 @@ namespace GeminiDotNET
         }
 
         /// <summary>
-        /// Determines if the specified model version supports JSON output.
-        /// </summary>
-        /// <param name="modelVersion">The model version to check.</param>
-        /// <returns>True if the model version supports JSON output; otherwise, false.</returns>
-        public static bool SupportsJsonOutput(ModelVersion modelVersion)
-        {
-            var notSupportedVersions = new List<ModelVersion>
-                {
-                    ModelVersion.Gemini_20_Flash_Thinking,
-                };
-
-            return !notSupportedVersions.Contains(modelVersion);
-        }
-
-        /// <summary>
         /// Validates if the provided API key is in a valid Gemini API KEY format.
         /// </summary>
         /// <param name="apiKey">The API key to validate.</param>
@@ -62,6 +47,26 @@ namespace GeminiDotNET
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Check if the provided API key is valid.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<bool> IsValidApiKeyAsync(string apiKey)
+        {
+            try
+            {
+                using var client = new HttpClient();
+                using var request = new HttpRequestMessage(HttpMethod.Head, $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite?key={apiKey}");
+                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Example_APIs.Controllers
 
             var apiRequest = new ApiRequestBuilder()
                 .WithPrompt(prompt)
-                .WithUploadedFile(fileUri, MimeType.VideoMp4)
+                .WithUploadedFile(fileUri, MimeType.MP4)
                 .WithDefaultGenerationConfig()
                 .DisableAllSafetySettings()
                 .Build();

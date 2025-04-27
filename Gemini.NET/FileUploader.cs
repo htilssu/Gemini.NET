@@ -1,4 +1,6 @@
-﻿using System.Net.Http.Headers;
+﻿using Gemini.NET.Helpers;
+using GeminiDotNET.Helpers;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Web;
@@ -7,59 +9,31 @@ namespace GeminiDotNET
 {
     public class FileUploader
     {
-        private readonly HttpClient _httpClient = new HttpClient();
+        private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private const string BaseUrl = "https://generativelanguage.googleapis.com";
 
         public FileUploader(string apiKey)
         {
-            if (!Validator.CanBeValidApiKey(apiKey))
-            {
-                throw new ArgumentNullException(nameof(apiKey), "Invalid or expired API key.");
-            }
+            if (!Validator.CanBeValidApiKey(apiKey)) throw new ArgumentNullException(nameof(apiKey), "Invalid or expired API key.");
 
             _apiKey = apiKey.Trim();
-        }
-
-        public async Task<List<string>> UploadFilesAsync(IEnumerable<string> filePaths, int maxConcurrent = 4, CancellationToken cancellationToken = default)
-        {
-            var semaphore = new SemaphoreSlim(maxConcurrent);
-            var uploadTasks = new List<Task<string>>();
-
-            foreach (var path in filePaths)
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                uploadTasks.Add(Task.Run(async () =>
-                {
-                    try
-                    {
-                        return await UploadFileAsync(path);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }, cancellationToken));
-            }
-
-            var results = await Task.WhenAll(uploadTasks);
-            return [.. results];
+            _httpClient = new();
         }
 
         public async Task<string> UploadFileAsync(string filePath, string? displayName = null, CancellationToken cancellationToken = default)
         {
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException("File not found", filePath);
-
-            var mimeType = GetMimeType(filePath);
-            var fileSize = new FileInfo(filePath).Length;
+            if (!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
             var safeDisplayName = string.IsNullOrEmpty(displayName) ? Path.GetFileName(filePath) : displayName.Trim();
-
             var existingFileUri = await GetFileUriByDisplayNameAsync(safeDisplayName, cancellationToken);
             if (!string.IsNullOrEmpty(existingFileUri))
             {
                 return existingFileUri;
             }
+
+            var mimeTypeValue = MimeTypeHelper.GetMimeType(filePath);
+            var mimeType = EnumHelper.GetDescription(mimeTypeValue);
+            var fileSize = new FileInfo(filePath).Length;
 
             var startUrl = $"{BaseUrl}/upload/v1beta/files?key={_apiKey}";
             var startRequest = new HttpRequestMessage(HttpMethod.Post, startUrl);
@@ -68,18 +42,13 @@ namespace GeminiDotNET
             startRequest.Headers.Add("X-Goog-Upload-Header-Content-Length", fileSize.ToString());
             startRequest.Headers.Add("X-Goog-Upload-Header-Content-Type", mimeType);
             startRequest.Content = new StringContent(
-                $"{{\"file\": {{\"display_name\": \"{safeDisplayName}\"}}}}",
-                Encoding.UTF8,
-                "application/json"
+                $"{{\"file\": {{\"display_name\": \"{safeDisplayName}\"}}}}", Encoding.UTF8, "application/json"
             );
 
             using var startResponse = await _httpClient.SendAsync(startRequest, cancellationToken);
             startResponse.EnsureSuccessStatusCode();
 
-            if (!startResponse.Headers.TryGetValues("X-Goog-Upload-URL", out var uploadUrlValues))
-            {
-                throw new InvalidOperationException("Upload URL not found in response");
-            }
+            if (!startResponse.Headers.TryGetValues("X-Goog-Upload-URL", out var uploadUrlValues)) throw new InvalidOperationException("Upload URL not found in response");
 
             var uploadUrl = uploadUrlValues.First();
 
@@ -107,13 +76,13 @@ namespace GeminiDotNET
 
             if (mimeType.StartsWith("video/"))
             {
-                await WaitForFileToBeActiveAsync(fileElement, cancellationToken);
+                await WaitForFileToBeActiveAsync(fileElement, 5, cancellationToken);
             }
 
             return fileUri!;
         }
 
-        private async Task WaitForFileToBeActiveAsync(JsonElement fileElement, CancellationToken cancellationToken, int delayTimeInSecond = 5)
+        private async Task WaitForFileToBeActiveAsync(JsonElement fileElement, int delayTimeInSecond, CancellationToken cancellationToken)
         {
             if (!fileElement.TryGetProperty("name", out var nameElement))
             {
@@ -156,7 +125,7 @@ namespace GeminiDotNET
 
             if (!doc.RootElement.TryGetProperty("files", out var filesElement))
             {
-                return null;
+                throw new InvalidOperationException("Could not extract files from response");
             }
 
             foreach (var file in filesElement.EnumerateArray())
@@ -168,23 +137,6 @@ namespace GeminiDotNET
             }
 
             return null;
-        }
-
-        private static string GetMimeType(string filePath)
-        {
-            var ext = Path.GetExtension(filePath).ToLowerInvariant();
-            return ext switch
-            {
-                ".jpg" or ".jpeg" => "image/jpeg",
-                ".png" => "image/png",
-                ".webp" => "image/webp",
-                ".mp3" => "audio/mpeg",
-                ".wav" => "audio/wav",
-                ".mp4" => "video/mp4",
-                ".mov" => "video/quicktime",
-                ".pdf" => "application/pdf",
-                _ => "application/octet-stream"
-            };
         }
     }
 }

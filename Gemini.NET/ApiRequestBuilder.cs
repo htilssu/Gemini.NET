@@ -119,7 +119,7 @@ namespace GeminiDotNET
         /// <param name="maxOutputTokens">The maximum number of tokens in the generated output.</param>
         /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the temperature is out of the valid range (0.0 to 2.0).</exception>
-        public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1, int maxOutputTokens = 8192)
+        public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1, int maxOutputTokens = 65536)
         {
             if (temperature < 0.0F || temperature > 2.0F)
             {
@@ -191,9 +191,15 @@ namespace GeminiDotNET
         /// Sets the Base64 images for the API request.
         /// </summary>
         /// <returns></returns>
-        public ApiRequestBuilder WithBase64Images(IEnumerable<string> images)
+        public ApiRequestBuilder WithBase64Images(IEnumerable<string> base64Images)
         {
-            _images = images.Select(ImageHelper.AsImageData);
+            _images = base64Images.Select(ImageHelper.Base64ToImageData);
+            return this;
+        }
+
+        public ApiRequestBuilder WithImages(IEnumerable<string> filePaths)
+        {
+            _images = filePaths.Select(ImageHelper.ImagePathToBase64);
             return this;
         }
 

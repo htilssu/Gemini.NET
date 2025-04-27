@@ -8,25 +8,25 @@ namespace GeminiDotNET.Helpers
     /// </summary>
     public static class ImageHelper
     {
-        private static readonly List<MimeType> _imageMimeTypes =
+        private static readonly List<MimeType> _supportedMimeTypes =
         [
-            MimeType.ImagePng,
-                MimeType.ImageJpeg,
-                MimeType.ImageHeic,
-                MimeType.ImageHeif,
-                MimeType.ImageWebp,
+            MimeType.PNG,
+            MimeType.JPEG,
+            MimeType.HEIC,
+            MimeType.HEIF,
+            MimeType.WEBP,
         ];
 
-        public static ImageData AsImageData(string base64Image)
+        public static ImageData Base64ToImageData(string base64Image)
         {
             MimeType? mimeType;
             if (base64Image.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
             {
                 var imageFormat = base64Image[..base64Image.IndexOf(';')].Split('/')[^1];
-                mimeType = _imageMimeTypes.FirstOrDefault(t => t.ToString().EndsWith(imageFormat, StringComparison.OrdinalIgnoreCase));
-                if (mimeType == null)
+                mimeType = _supportedMimeTypes.FirstOrDefault(t => t.ToString().EndsWith(imageFormat, StringComparison.OrdinalIgnoreCase));
+                if (mimeType == default)
                 {
-                    mimeType = MimeType.ImageJpeg;
+                    mimeType = MimeType.JPEG;
                 }
                 if (base64Image.Contains(','))
                 {
@@ -35,7 +35,7 @@ namespace GeminiDotNET.Helpers
             }
             else
             {
-                mimeType = MimeType.ImageJpeg;
+                mimeType = MimeType.JPEG;
                 if (base64Image.Contains(','))
                 {
                     base64Image = base64Image.Split(',')[1];
@@ -47,6 +47,25 @@ namespace GeminiDotNET.Helpers
                 Base64Data = base64Image,
                 MimeType = mimeType.Value
             };
+        }
+
+        public static ImageData ImagePathToBase64(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            {
+                throw new FileNotFoundException("Image not found", filePath);
+            }
+
+            try
+            {
+                byte[] imageBytes = File.ReadAllBytes(filePath);
+                var base64 = Convert.ToBase64String(imageBytes);
+                return Base64ToImageData(base64);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error while converting '{filePath}' to base64", ex);
+            }
         }
     }
 }

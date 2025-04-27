@@ -3,116 +3,100 @@
 namespace GeminiDotNET.API_Models.Enums
 {
     /// <summary>
-    /// The media type of the file specified in the Inline Data
+    /// The type of the file specified in the Inline Data
     /// </summary>
     public enum MimeType
     {
-        /// <summary>
-        /// MIME type for PDF documents.
-        /// </summary>
+        #region Document
         [Description("application/pdf")]
-        ApplicationPdf,
+        PDF,
 
-        /// <summary>
-        /// MIME type for MPEG audio.
-        /// </summary>
-        [Description("audio/mpeg")]
-        AudioMpeg,
-
-        /// <summary>
-        /// MIME type for MP3 audio.
-        /// </summary>
-        [Description("audio/mp3")]
-        AudioMp3,
-
-        /// <summary>
-        /// MIME type for WAV audio.
-        /// </summary>
-        [Description("audio/wav")]
-        AudioWav,
-
-        /// <summary>
-        /// MIME type for PNG images.
-        /// </summary>
-        [Description("image/png")]
-        ImagePng,
-
-        /// <summary>
-        /// MIME type for JPEG images.
-        /// </summary>
-        [Description("image/jpeg")]
-        ImageJpeg,
-
-        /// <summary>
-        /// MIME type for HEIF images.
-        /// </summary>
-        [Description("image/heif")]
-        ImageHeif,
-
-        /// <summary>
-        /// MIME type for HEIC images.
-        /// </summary>
-        [Description("image/heic")]
-        ImageHeic,
-
-        /// <summary>
-        /// MIME type for WEBP images.
-        /// </summary>
-        [Description("image/webp")]
-        ImageWebp,
-
-        /// <summary>
-        /// MIME type for plain text.
-        /// </summary>
         [Description("text/plain")]
-        TextPlain,
+        TXT,
 
-        /// <summary>
-        /// MIME type for MOV video.
-        /// </summary>
-        [Description("video/mov")]
-        VideoMov,
+        [Description("text/html")]
+        HTML,
 
-        /// <summary>
-        /// MIME type for MPEG video.
-        /// </summary>
-        [Description("video/mpeg")]
-        VideoMpeg,
+        [Description("text/css")]
+        CSS,
 
-        /// <summary>
-        /// MIME type for MP4 video.
-        /// </summary>
+        [Description("text/md")]
+        MD,
+
+        [Description("text/csv")]
+        CSV,
+
+        [Description("text/xml")]
+        XML,
+
+        [Description("text/rtf")]
+        RTF,
+        #endregion
+
+        #region Image
+        [Description("image/png")]
+        PNG,
+
+        [Description("image/jpeg")]
+        JPEG,
+
+        [Description("image/heif")]
+        HEIF,
+
+        [Description("image/heic")]
+        HEIC,
+
+        [Description("image/webp")]
+        WEBP,
+        #endregion
+
+        #region Video
         [Description("video/mp4")]
-        VideoMp4,
+        MP4,
 
-        /// <summary>
-        /// MIME type for MPG video.
-        /// </summary>
-        [Description("video/mpg")]
-        VideoMpg,
+        [Description("video/mpeg")]
+        MPEG,
 
-        /// <summary>
-        /// MIME type for AVI video.
-        /// </summary>
+        [Description("video/mov")]
+        MOV,
+
         [Description("video/avi")]
-        VideoAvi,
+        AVI,
 
-        /// <summary>
-        /// MIME type for WMV video.
-        /// </summary>
+        [Description("video/x-flv")]
+        FLV,
+
+        [Description("video/mpg")]
+        MPG,
+
+        [Description("video/webm")]
+        WEBM,
+
         [Description("video/wmv")]
-        VideoWmv,
+        WMV,
 
-        /// <summary>
-        /// MIME type for MPEGPS video.
-        /// </summary>
-        [Description("video/mpegps")]
-        VideoMpegps,
+        [Description("video/3gpp")]
+        GPP,
+        #endregion
 
-        /// <summary>
-        /// MIME type for FLV video.
-        /// </summary>
-        [Description("video/flv")]
-        VideoFlv
+        #region Audio
+        [Description("audio/wav")]
+        WAV,
+
+        [Description("audio/mp3")]
+        MP3,
+
+        [Description("audio/aiff")]
+        AIFF,
+
+        [Description("audio/aac")]
+        AAC,
+
+        [Description("audio/ogg")]
+        OGG,
+
+        [Description("audio/flac")]
+        FLAC,
+        #endregion
     }
 }

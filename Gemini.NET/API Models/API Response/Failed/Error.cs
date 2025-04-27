@@ -8,10 +8,10 @@ namespace Models.Response.Failed
         public int? Code { get; set; }
 
         [JsonProperty("message")]
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         [JsonProperty("status")]
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
         [JsonProperty("details")]
         public List<Detail>? Details { get; set; }

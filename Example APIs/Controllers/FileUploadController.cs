@@ -1,7 +1,5 @@
-﻿using Gemini.NET.API_Models.API_Request;
-using GeminiDotNET;
+﻿using GeminiDotNET;
 using GeminiDotNET.API_Models.Enums;
-using GeminiDotNET.Client_Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers
@@ -54,7 +52,7 @@ namespace Example_APIs.Controllers
 
                 var apiRequest = new ApiRequestBuilder()
                     .WithPrompt("Summarize the context")
-                    .WithUploadedFile(fileUri, MimeType.ApplicationPdf)
+                    .WithUploadedFile(fileUri, MimeType.PDF)
                     .WithDefaultGenerationConfig()
                     .DisableAllSafetySettings()
                     .Build();
