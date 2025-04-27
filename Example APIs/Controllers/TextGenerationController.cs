@@ -52,5 +52,19 @@ namespace Example_APIs.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("ValidateApiKey")]
+        public async Task<IActionResult> ValidateApiKey(string apiKey)
+        {
+            try
+            {
+                var response = await Validator.IsValidApiKeyAsync(apiKey);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

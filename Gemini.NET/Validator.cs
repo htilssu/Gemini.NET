@@ -40,11 +40,15 @@ namespace GeminiDotNET
         /// <returns></returns>
         public static async Task<bool> IsValidApiKeyAsync(string apiKey)
         {
+            if (!CanBeValidApiKey(apiKey))
+            {
+                return false;
+            }
+
             try
             {
                 using var client = new HttpClient();
-                using var request = new HttpRequestMessage(HttpMethod.Head, $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite?key={apiKey}");
-                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                using var response = await client.GetAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite?key={apiKey}");
 
                 return response.IsSuccessStatusCode;
             }

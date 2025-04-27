@@ -25,11 +25,6 @@ namespace GeminiDotNET
         {
             if (!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
             var safeDisplayName = string.IsNullOrEmpty(displayName) ? Path.GetFileName(filePath) : displayName.Trim();
-            var existingFileUri = await GetFileUriByDisplayNameAsync(safeDisplayName, cancellationToken);
-            if (!string.IsNullOrEmpty(existingFileUri))
-            {
-                return existingFileUri;
-            }
 
             var mimeTypeValue = MimeTypeHelper.GetMimeType(filePath);
             var mimeType = EnumHelper.GetDescription(mimeTypeValue);
@@ -125,7 +120,7 @@ namespace GeminiDotNET
 
             if (!doc.RootElement.TryGetProperty("files", out var filesElement))
             {
-                throw new InvalidOperationException("Could not extract files from response");
+                return null;
             }
 
             foreach (var file in filesElement.EnumerateArray())
