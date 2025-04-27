@@ -1,9 +1,8 @@
-﻿using Gemini.NET.Helpers;
+﻿using Gemini.NET.API_Models.API_Response.Success;
+using Gemini.NET.Helpers;
 using GeminiDotNET.Helpers;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
-using System.Web;
 
 namespace GeminiDotNET
 {
@@ -59,79 +58,66 @@ namespace GeminiDotNET
             uploadResponse.EnsureSuccessStatusCode();
 
             var responseJson = await uploadResponse.Content.ReadAsStringAsync(cancellationToken);
-            using var jsonDoc = JsonDocument.Parse(responseJson);
+            var dto = JsonHelper.AsObject<FileUploaderResponse>(responseJson);
 
-            var root = jsonDoc.RootElement;
-            if (!root.TryGetProperty("file", out var fileElement) || !fileElement.TryGetProperty("uri", out var uriElement))
+            if (dto == null || dto?.File == null || dto?.File?.Uri == null)
             {
                 throw new InvalidOperationException("Could not extract file URI");
             }
 
-            var fileUri = uriElement.GetString();
+            var fileUri = dto.File.Uri;
 
-            if (mimeType.StartsWith("video/"))
+            if (fileSize > 50 * 1024 * 1024)
             {
-                await WaitForFileToBeActiveAsync(fileElement, 5, cancellationToken);
-            }
-
-            return fileUri!;
-        }
-
-        private async Task WaitForFileToBeActiveAsync(JsonElement fileElement, int delayTimeInSecond, CancellationToken cancellationToken)
-        {
-            if (!fileElement.TryGetProperty("name", out var nameElement))
-            {
-                throw new InvalidOperationException("File name not found in the response");
-            }
-
-            var fileName = nameElement.GetString();
-            var statusUrl = $"{BaseUrl}/v1beta/files/{HttpUtility.UrlEncode(fileName)}?key={_apiKey}";
-
-            string? state = null;
-            sbyte retryCount = 0;
-
-            do
-            {
-                await Task.Delay(delayTimeInSecond / 1000, cancellationToken);
-                var resp = await _httpClient.GetAsync(statusUrl, cancellationToken);
-                var json = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-                using var statusDoc = JsonDocument.Parse(json);
-                state = statusDoc.RootElement.GetProperty("file").GetProperty("state").GetString();
-
-                retryCount++;
-                if (retryCount > 20)
+                string? state = null;
+                sbyte retryCount = 0;
+                do
                 {
-                    throw new TimeoutException($"File processing took too long. Failed after {retryCount} attemps.");
+                    var uploadingFile = await GetFileAsync(dto.File.Name);
+                    state = uploadingFile?.State;
+                    retryCount++;
+                    if (retryCount > 20)
+                    {
+                        throw new TimeoutException($"File processing took too long. Failed after {retryCount} attemps.");
+                    }
                 }
-
+                while (state != "ACTIVE");
             }
-            while (state != "ACTIVE");
+
+            return fileUri;
         }
 
-        public async Task<string?> GetFileUriByDisplayNameAsync(string displayName, CancellationToken cancellationToken = default)
+        public async Task<FileMetaData?> GetFileAsync(string name)
         {
-            var listUrl = $"{BaseUrl}/v1beta/files?key={_apiKey}";
-            using var response = await _httpClient.GetAsync(listUrl, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                var listUrl = $"{BaseUrl}/v1beta/{name}?key={_apiKey}";
+                using var response = await _httpClient.GetAsync(listUrl);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
 
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            using var doc = JsonDocument.Parse(json);
-
-            if (!doc.RootElement.TryGetProperty("files", out var filesElement))
+                return JsonHelper.AsObject<FileMetaData>(json);
+            }
+            catch
             {
                 return null;
             }
+        }
 
-            foreach (var file in filesElement.EnumerateArray())
+        public async Task<List<FileMetaData>> GetAllFilesAsync()
+        {
+            var listUrl = $"{BaseUrl}/v1beta/files?key={_apiKey}";
+            using var response = await _httpClient.GetAsync(listUrl);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+
+            var dto = JsonHelper.AsObject<FileUploaderResponse>(json);
+            if (dto == null || dto?.Files == null)
             {
-                if (file.TryGetProperty("displayName", out var nameElement) && nameElement.GetString()?.Equals(displayName, StringComparison.OrdinalIgnoreCase) == true && file.TryGetProperty("uri", out var uriElement))
-                {
-                    return uriElement.GetString();
-                }
+                return [];
             }
 
-            return null;
+            return dto.Files;
         }
     }
 }

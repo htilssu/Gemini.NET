@@ -1,6 +1,4 @@
-﻿using Models.Enums;
-
-namespace GeminiDotNET
+﻿namespace GeminiDotNET
 {
     /// <summary>
     /// Provides validation methods for Gemini model versions and API keys.

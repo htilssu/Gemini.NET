@@ -25,14 +25,14 @@ namespace Example_APIs.Controllers
         }
 
         [HttpPost("GetFile")]
-        public async Task<IActionResult> GetFile(string apiKey, string displayName)
+        public async Task<IActionResult> GetFile(string apiKey, string name)
         {
             var uploader = new FileUploader(apiKey);
 
             try
             {
-                var name = await uploader.GetFileUriByDisplayNameAsync(displayName);
-                return Ok(name);
+                var file = await uploader.GetFileAsync(name);
+                return Ok(file);
             }
             catch (Exception ex)
             {
@@ -47,17 +47,17 @@ namespace Example_APIs.Controllers
 
             try
             {
-                var fileUri = await uploader.UploadFileAsync(filePath);
+                //var fileUri = await uploader.UploadFileAsync(filePath);
                 var generatorWithApiKey = new Generator(apiKey);
 
                 var apiRequest = new ApiRequestBuilder()
                     .WithPrompt("Summarize the context")
-                    .WithUploadedFile(fileUri, MimeType.PDF)
+                    .WithUploadedFile("https://generativelanguage.googleapis.com/v1beta/files/brnqkf71i8b9", MimeType.PDF)
                     .WithDefaultGenerationConfig()
                     .DisableAllSafetySettings()
                     .Build();
 
-                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, "gemini-2.0-flash");
+                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, "gemini-2.5-pro-exp-03-25");
 
                 return Ok(response.Content);
             }
