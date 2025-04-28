@@ -1,7 +1,9 @@
-﻿using GeminiDotNET.Client_Models;
+﻿using Gemini.NET.Extensions;
+using GeminiDotNET.Client_Models;
 using GeminiDotNET.Helpers;
 using Models.Enums;
 using Models.Request;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -11,7 +13,7 @@ namespace GeminiDotNET
     {
         private const string _apiEndpointPrefix = "https://generativelanguage.googleapis.com/v1beta/models";
 
-        private readonly HttpClient _client = new();
+        private readonly HttpClient _client;
         private readonly string? _apiKey;
 
         /// <summary>
@@ -19,7 +21,7 @@ namespace GeminiDotNET
         /// </summary>
         /// <param name="apiKey"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public Generator(string apiKey)
+        public Generator(string apiKey, double apiTimeOutInSecond = 120)
         {
             if (!Validator.CanBeValidApiKey(apiKey))
             {
@@ -27,6 +29,10 @@ namespace GeminiDotNET
             }
 
             _apiKey = apiKey;
+            _client = new()
+            {
+                Timeout = TimeSpan.FromSeconds(apiTimeOutInSecond)
+            };
         }
 
         /// <summary>
@@ -53,6 +59,7 @@ namespace GeminiDotNET
                 throw new ArgumentNullException(nameof(bearer), "Bearer token is required.");
             }
 
+            _client = new();
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Add(cloudProjectName, cloudProjectId);
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -68,9 +75,9 @@ namespace GeminiDotNET
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, ModelVersion modelVersion = ModelVersion.Gemini_20_Flash_Lite, double apiTimeOutInSecond = 120)
+        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, ModelVersion modelVersion = ModelVersion.Gemini_20_Flash_Lite)
         {
-            return await GenerateContentAsync(request, EnumHelper.GetDescription(modelVersion), apiTimeOutInSecond);
+            return await GenerateContentAsync(request, EnumHelper.GetDescription(modelVersion));
         }
 
         /// <summary>
@@ -81,20 +88,25 @@ namespace GeminiDotNET
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, string modelAlias, double apiTimeOutInSecond = 120)
+        public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, string modelAlias)
         {
             if (string.IsNullOrEmpty(modelAlias))
             {
                 throw new ArgumentNullException(nameof(modelAlias), "Model alias is required.");
             }
 
+            var endpoint = $"{_apiEndpointPrefix}/{modelAlias}:generateContent";
+            if (!string.IsNullOrEmpty(_apiKey))
+            {
+                endpoint += $"?key={_apiKey}";
+                _client.DefaultRequestHeaders.Clear();
+            }
+
             try
             {
-                _client.DefaultRequestHeaders.Clear();
-                _client.Timeout = TimeSpan.FromSeconds(apiTimeOutInSecond);
                 var json = JsonHelper.AsString(request);
                 var body = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($@"{_apiEndpointPrefix}/{modelAlias}:generateContent?key={_apiKey}", body);
+                var response = await _client.PostAsync(endpoint, body);
                 var responseData = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -102,10 +114,8 @@ namespace GeminiDotNET
                     try
                     {
                         var dto = JsonHelper.AsObject<Models.Response.Failed.ApiResponse>(responseData);
-                        throw new InvalidOperationException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}",
-                            dto?.Error?.Details != null
-                            ? new Exception(JsonHelper.AsString(dto?.Error?.Details))
-                            : new Exception(responseData));
+
+                        throw new GeminiException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", dto, new Exception(responseData));
                     }
                     catch (Exception ex)
                     {
@@ -118,7 +128,7 @@ namespace GeminiDotNET
                             }
                         };
 
-                        throw new InvalidOperationException($"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", new Exception(responseData));
+                        throw new GeminiException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", dto, new Exception(responseData));
                     }
                 }
                 else
