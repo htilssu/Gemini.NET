@@ -1,4 +1,5 @@
 ﻿using Gemini.NET.API_Models.API_Request;
+using Gemini.NET.API_Models.API_Response.Success.FunctionCalling;
 using GeminiDotNET.API_Models.API_Request;
 using Newtonsoft.Json;
 
@@ -28,5 +29,12 @@ namespace Models.Shared
         /// </summary>
         [JsonProperty("file_data")]
         public FileData? FileData { get; set; }
+
+        /// <summary>
+        /// The function call name and arguments
+        /// </summary>
+        [JsonProperty("functionCall")]
+        public FunctionCall? FunctionCall { get; set; }
+
     }
 }

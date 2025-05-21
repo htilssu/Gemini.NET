@@ -1,9 +1,9 @@
-﻿using Gemini.NET.Extensions;
+﻿using Gemini.NET.Client_Models;
+using Gemini.NET.Extensions;
 using GeminiDotNET.Client_Models;
 using GeminiDotNET.Helpers;
 using Models.Enums;
 using Models.Request;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -136,13 +136,13 @@ namespace GeminiDotNET
                     try
                     {
                         var dto = JsonHelper.AsObject<Models.Response.Success.ApiResponse>(responseData);
-                        var groudingMetadata = dto.Candidates[0]?.GroundingMetadata;
+                        var firstCandidate = dto?.Candidates?.FirstOrDefault();
+                        var groudingMetadata = firstCandidate?.GroundingMetadata;
 
-                        return new ModelResponse
+                        var modelResponse = new ModelResponse
                         {
-                            Content = dto.Candidates[0].Content != null
-                                ? dto.Candidates[0].Content?.Parts[0].Text
-                                : "Failed to generate content",
+                            Content = firstCandidate?.Content?.Parts
+                                .FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text,
                             GroundingDetail = groudingMetadata != null
                                 ? new GroundingDetail
                                 {
@@ -159,7 +159,17 @@ namespace GeminiDotNET
                                         }),
                                 }
                                 : null,
+                            FunctionCallingInfo = firstCandidate?.Content?.Parts
+                                .Where(p => p.FunctionCall != null)
+                                .Select(f => new FunctionCallingInfo
+                                {
+                                    Name = f.FunctionCall?.Name,
+                                    ParameterModel = f.FunctionCall?.Args,
+                                })
+                                .ToList()
                         };
+
+                        return modelResponse;
                     }
                     catch (Exception ex)
                     {
@@ -169,7 +179,7 @@ namespace GeminiDotNET
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to send request to Gemini: {ex.Message}", ex.InnerException);
+                throw new InvalidOperationException(ex.Message, ex.InnerException);
             }
         }
     }

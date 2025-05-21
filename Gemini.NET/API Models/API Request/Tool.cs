@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Gemini.NET.API_Models.API_Request.Configurations.Tools;
+using Newtonsoft.Json;
 
 namespace Models.Shared
 {
@@ -13,6 +14,13 @@ namespace Models.Shared
         /// When configured, allows the model to perform web searches during content generation.
         /// </summary>
         [JsonProperty("googleSearch")]
-        public GoogleSearch? GoogleSearch { get; set; } = new GoogleSearch();
+        public GoogleSearch? GoogleSearch { get; set; }
+
+        /// <summary>
+        /// The function calling tool configuration.
+        /// When configured, allows the model to call functions during content generation.
+        /// </summary>
+        [JsonProperty("functionDeclarations")]
+        public List<FunctionDeclaration>? FunctionDeclarations;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Gemini.NET.API_Models.API_Request;
+using Gemini.NET.API_Models.API_Request.Configurations.Tools;
 using GeminiDotNET.API_Models.API_Request;
 using GeminiDotNET.API_Models.Enums;
 using GeminiDotNET.Client_Models;
@@ -17,12 +18,26 @@ namespace GeminiDotNET
     {
         private string? _prompt;
         private string? _systemInstruction;
-        private GenerationConfig? _config;
         private bool _useGrounding = false;
-        private IEnumerable<SafetySetting>? _safetySettings;
-        private List<Content>? _chatHistory;
-        private IEnumerable<ImageData>? _images;
+        private GenerationConfig? _config;
         private FileData? _file;
+
+        private IEnumerable<SafetySetting>? _safetySettings;
+        private IEnumerable<ImageData>? _images;
+        private IEnumerable<FunctionDeclaration>? _functionDeclarations;
+
+        private List<Content>? _chatHistory;
+
+        /// <summary>
+        /// Set the function declarations for the API request.
+        /// </summary>
+        /// <param name="functions"></param>
+        /// <returns></returns>
+        public ApiRequestBuilder WithFunctionDeclarations(IEnumerable<FunctionDeclaration> functions)
+        {
+            _functionDeclarations = functions;
+            return this;
+        }
 
         /// <summary>
         /// Sets the system instruction for the API request.
@@ -238,10 +253,16 @@ namespace GeminiDotNET
         /// <exception cref="ArgumentNullException">Thrown when the prompt is null or empty.</exception>
         public ApiRequest Build()
         {
-            if (string.IsNullOrEmpty(_prompt))
+            if (string.IsNullOrEmpty(_prompt) && (_images == null || !_images.Any()))
             {
-                throw new ArgumentNullException(nameof(_prompt), "Prompt can't be an empty string.");
+                throw new InvalidOperationException("Prompt or images must be provided.");
             }
+
+            var apiRequest = new ApiRequest
+            {
+                GenerationConfig = _config,
+                SafetySettings = _safetySettings?.ToList()
+            };
 
             var contents = _chatHistory ?? [];
 
@@ -287,33 +308,40 @@ namespace GeminiDotNET
                 Role = EnumHelper.GetDescription(Role.User),
             });
 
-            return new ApiRequest
-            {
-                Contents = contents,
-                GenerationConfig = _config,
-                SafetySettings = _safetySettings?.ToList(),
-                Tools = _useGrounding
-                    ?
+            apiRequest.Contents = contents;
+
+            apiRequest.SystemInstruction = string.IsNullOrEmpty(_systemInstruction)
+                ? null
+                : new SystemInstruction
+                {
+                    Parts =
                     [
-                            new Tool
-                            {
-                                GoogleSearch = new GoogleSearch()
-                            }
+                        new Part
+                        {
+                            Text = _systemInstruction
+                        }
                     ]
-                    : null,
-                SystemInstruction = string.IsNullOrEmpty(_systemInstruction)
-                    ? null
-                    : new SystemInstruction
-                    {
-                        Parts =
-                        [
-                                new Part
-                                {
-                                    Text = _systemInstruction
-                                }
-                        ]
-                    }
-            };
+                };
+
+            if (_useGrounding)
+            {
+                apiRequest.Tools ??= [];
+                apiRequest.Tools.Add(new Tool
+                {
+                    GoogleSearch = new GoogleSearch()
+                });
+            }
+
+            if (_functionDeclarations != null && _functionDeclarations.Any())
+            {
+                apiRequest.Tools ??= [];
+                apiRequest.Tools.Add(new Tool
+                {
+                    FunctionDeclarations = _functionDeclarations.ToList()
+                });
+            }
+
+            return apiRequest;
         }
     }
 }
