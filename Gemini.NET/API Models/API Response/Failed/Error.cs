@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Models.Response.Failed
+namespace GeminiDotNET.ApiModels.Response.Failed
 {
     public class Error
     {

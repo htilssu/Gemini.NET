@@ -1,4 +1,4 @@
-﻿namespace GeminiDotNET.Client_Models
+﻿namespace GeminiDotNET.ClientModels
 {
     /// <summary>
     /// The details of grounding information.

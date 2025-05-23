@@ -1,4 +1,5 @@
 ﻿using GeminiDotNET;
+using GeminiDotNET.ApiModels.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers
@@ -20,7 +21,7 @@ namespace Example_APIs.Controllers
 
             try
             {
-                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, Models.Enums.ModelVersion.Gemini_20_Flash_Lite);
+                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, ModelVersion.Gemini_20_Flash_Lite);
                 return Ok(response);
             }
             catch (Exception ex)

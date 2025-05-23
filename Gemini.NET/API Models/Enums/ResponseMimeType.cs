@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Models.Enums
+namespace GeminiDotNET.ApiModels.Enums
 {
     /// <summary>
     /// Enum representing different MIME types for model responses.

@@ -1,12 +1,13 @@
-﻿using Gemini.NET.API_Models.API_Request;
-using Gemini.NET.API_Models.API_Request.Configurations.Tools;
-using GeminiDotNET.API_Models.API_Request;
-using GeminiDotNET.API_Models.Enums;
-using GeminiDotNET.Client_Models;
+﻿using GeminiDotNET.ApiModels.ApiRequest;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling;
+using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.ApiModels.Request;
+using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
+using GeminiDotNET.ApiModels.Shared;
+using GeminiDotNET.ClientModels;
 using GeminiDotNET.Helpers;
-using Models.Enums;
-using Models.Request;
-using Models.Shared;
 
 namespace GeminiDotNET
 {
@@ -25,6 +26,8 @@ namespace GeminiDotNET
         private IEnumerable<SafetySetting>? _safetySettings;
         private IEnumerable<ImageData>? _images;
         private IEnumerable<FunctionDeclaration>? _functionDeclarations;
+        private IEnumerable<FunctionResponse>? _functionResponses;
+        private FunctionCallingMode _functionCallingMode;
 
         private List<Content>? _chatHistory;
 
@@ -33,9 +36,25 @@ namespace GeminiDotNET
         /// </summary>
         /// <param name="functions"></param>
         /// <returns></returns>
-        public ApiRequestBuilder WithFunctionDeclarations(IEnumerable<FunctionDeclaration> functions)
+        public ApiRequestBuilder WithFunctionDeclarations(IEnumerable<FunctionDeclaration> functions, FunctionCallingMode mode = FunctionCallingMode.AUTO)
         {
+            if (functions == null || !functions.Any())
+            {
+                throw new ArgumentNullException(nameof(functions), "Function declarations can't be null or empty.");
+            }
+
             _functionDeclarations = functions;
+            _functionCallingMode = mode;
+            return this;
+        }
+
+        public ApiRequestBuilder WithFunctionResponses(IEnumerable<FunctionResponse> functionResponses)
+        {
+            if (functionResponses == null || !functionResponses.Any())
+            {
+                throw new ArgumentNullException(nameof(functionResponses), "Function calling results can't be null or empty.");
+            }
+            _functionResponses = functionResponses;
             return this;
         }
 
@@ -253,11 +272,6 @@ namespace GeminiDotNET
         /// <exception cref="ArgumentNullException">Thrown when the prompt is null or empty.</exception>
         public ApiRequest Build()
         {
-            if (string.IsNullOrEmpty(_prompt) && (_images == null || !_images.Any()))
-            {
-                throw new InvalidOperationException("Prompt or images must be provided.");
-            }
-
             var apiRequest = new ApiRequest
             {
                 GenerationConfig = _config,
@@ -296,17 +310,33 @@ namespace GeminiDotNET
                 });
             }
 
-            contents.Add(new Content
+            if (_functionResponses != null && _functionResponses.Any())
             {
-                Parts =
+                contents.Add(new Content
+                {
+                    Parts = [.. _functionResponses
+                        .Select(c => new Part
+                        {
+                            FunctionResponse = c
+                        })],
+                    Role = EnumHelper.GetDescription(Role.User),
+                });
+            }
+
+            if (!string.IsNullOrEmpty(_prompt))
+            {
+                contents.Add(new Content
+                {
+                    Parts =
                 [
                     new Part
                     {
                         Text = _prompt
                     }
                 ],
-                Role = EnumHelper.GetDescription(Role.User),
-            });
+                    Role = EnumHelper.GetDescription(Role.User),
+                });
+            }
 
             apiRequest.Contents = contents;
 
@@ -335,6 +365,15 @@ namespace GeminiDotNET
             if (_functionDeclarations != null && _functionDeclarations.Any())
             {
                 apiRequest.Tools ??= [];
+
+                apiRequest.ToolConfig = new ToolConfig
+                {
+                    FunctionCallingConfig = new FunctionCallingConfig
+                    {
+                        Mode = _functionCallingMode,
+                    }
+                };
+
                 apiRequest.Tools.Add(new Tool
                 {
                     FunctionDeclarations = _functionDeclarations.ToList()

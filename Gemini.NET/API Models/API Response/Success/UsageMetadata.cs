@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Models.Response.Success
+namespace GeminiDotNET.ApiModels.Response.Success
 {
     /// <summary>
     /// Represents metadata about the usage of the API.

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Models.Enums
+namespace GeminiDotNET.ApiModels.Enums
 {
     /// <summary>
     /// Enum representing different Gemini model versions available through the API.

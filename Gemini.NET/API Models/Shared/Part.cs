@@ -1,9 +1,8 @@
-﻿using Gemini.NET.API_Models.API_Request;
-using Gemini.NET.API_Models.API_Response.Success.FunctionCalling;
-using GeminiDotNET.API_Models.API_Request;
+﻿using GeminiDotNET.ApiModels.ApiRequest;
+using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
 using Newtonsoft.Json;
 
-namespace Models.Shared
+namespace GeminiDotNET.ApiModels.Shared
 {
     /// <summary>
     /// Represents a single part of a content block in the API request/response.
@@ -36,5 +35,10 @@ namespace Models.Shared
         [JsonProperty("functionCall")]
         public FunctionCall? FunctionCall { get; set; }
 
+        /// <summary>
+        /// The response returned by the function.
+        /// </summary>
+        [JsonProperty("function_response")]
+        public FunctionResponse? FunctionResponse { get; set; }
     }
 }

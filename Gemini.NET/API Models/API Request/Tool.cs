@@ -1,7 +1,8 @@
-﻿using Gemini.NET.API_Models.API_Request.Configurations.Tools;
+﻿using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling;
 using Newtonsoft.Json;
 
-namespace Models.Shared
+namespace GeminiDotNET.ApiModels.Shared
 {
     /// <summary>
     /// Represents a tool that extends the model's capabilities.

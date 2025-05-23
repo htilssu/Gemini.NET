@@ -1,5 +1,5 @@
-﻿using GeminiDotNET.API_Models.Enums;
-using GeminiDotNET.Client_Models;
+﻿using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.ClientModels;
 
 namespace GeminiDotNET.Helpers
 {

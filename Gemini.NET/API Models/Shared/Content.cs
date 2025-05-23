@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Models.Shared
+namespace GeminiDotNET.ApiModels.Shared
 {
     /// <summary>
     /// Represents a content block in the API request/response, consisting of a role and message parts.

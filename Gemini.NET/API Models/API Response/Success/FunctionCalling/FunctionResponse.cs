@@ -2,12 +2,12 @@
 
 namespace GeminiDotNET.ApiModels.Response.Success.FunctionCalling
 {
-    public class FunctionCall
+    public class FunctionResponse
     {
         [JsonProperty("name")]
         public string Name;
 
-        [JsonProperty("args")]
-        public object? Args;
+        [JsonProperty("response")]
+        public Response Response;
     }
 }

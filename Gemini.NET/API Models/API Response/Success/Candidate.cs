@@ -1,7 +1,7 @@
-﻿using Models.Shared;
+﻿using GeminiDotNET.ApiModels.Shared;
 using Newtonsoft.Json;
 
-namespace Models.Response.Success
+namespace GeminiDotNET.ApiModels.Response.Success
 {
     public class Candidate
     {

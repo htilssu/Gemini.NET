@@ -1,6 +1,6 @@
-﻿using GeminiDotNET.API_Models.Enums;
+﻿using GeminiDotNET.ApiModels.Enums;
 
-namespace GeminiDotNET.Client_Models
+namespace GeminiDotNET.ClientModels
 {
     /// <summary>
     /// Represents an image file that is sent as inline data

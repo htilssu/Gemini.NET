@@ -1,7 +1,7 @@
 ﻿using GeminiDotNET.Helpers;
 using Newtonsoft.Json;
 
-namespace Models.Request
+namespace GeminiDotNET.ApiModels.Request
 {
     /// <summary>
     /// Represents configuration parameters for controlling the model's text generation behavior.

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Gemini.NET.API_Models.API_Response.Success
+namespace GeminiDotNET.ApiModels.Response.Success
 {
     public class FileMetaData
     {

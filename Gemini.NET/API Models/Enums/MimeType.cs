@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace GeminiDotNET.API_Models.Enums
+namespace GeminiDotNET.ApiModels.Enums
 {
     /// <summary>
     /// The type of the file specified in the Inline Data

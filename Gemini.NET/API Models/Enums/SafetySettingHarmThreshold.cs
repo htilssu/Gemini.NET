@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Models.Enums
+namespace GeminiDotNET.ApiModels.Enums
 {
     /// <summary>
     /// The harm block threshold settings for content safety filtering.

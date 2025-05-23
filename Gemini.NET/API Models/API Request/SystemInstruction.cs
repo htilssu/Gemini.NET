@@ -1,8 +1,8 @@
-﻿using GeminiDotNET.Helpers;
-using Models.Shared;
+﻿using GeminiDotNET.ApiModels.Shared;
+using GeminiDotNET.Helpers;
 using Newtonsoft.Json;
 
-namespace Models.Request
+namespace GeminiDotNET.ApiModels.Request
 {
     /// <summary>
     /// Represents system-level instructions that guide the model's behavior.

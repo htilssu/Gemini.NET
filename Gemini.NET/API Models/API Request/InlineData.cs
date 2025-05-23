@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace GeminiDotNET.API_Models.API_Request
+namespace GeminiDotNET.ApiModels.ApiRequest
 {
     public class InlineData
     {

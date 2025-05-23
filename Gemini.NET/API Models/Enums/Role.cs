@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Models.Enums
+namespace GeminiDotNET.ApiModels.Enums
 {
     /// <summary>
     /// The role in the conversation with the model.

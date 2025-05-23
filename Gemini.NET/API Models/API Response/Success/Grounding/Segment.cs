@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Models.Response.Success
+namespace GeminiDotNET.ApiModels.Response.Success
 {
     public class Segment
     {

@@ -1,4 +1,4 @@
-﻿namespace Models.Shared
+﻿namespace GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools
 {
     /// <summary>
     /// Represents configuration for the Google Search tool.

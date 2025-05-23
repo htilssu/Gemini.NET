@@ -1,8 +1,8 @@
-﻿using GeminiDotNET.Helpers;
-using Models.Enums;
+﻿using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.Helpers;
 using Newtonsoft.Json;
 
-namespace Models.Request
+namespace GeminiDotNET.ApiModels.ApiRequest.Configurations
 {
     /// <summary>
     /// Represents a safety configuration that controls content filtering for specific harm categories.

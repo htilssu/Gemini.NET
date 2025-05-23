@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Gemini.NET.API_Models.API_Request.Configurations.Tools
+namespace GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling
 {
     public class FunctionDeclaration
     {

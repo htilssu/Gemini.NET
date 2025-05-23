@@ -1,6 +1,6 @@
-﻿using GeminiDotNET.API_Models.Enums;
+﻿using GeminiDotNET.ApiModels.Enums;
 
-namespace Gemini.NET.Helpers
+namespace GeminiDotNET.Helpers
 {
     public static class MimeTypeHelper
     {

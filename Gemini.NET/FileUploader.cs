@@ -1,5 +1,4 @@
-﻿using Gemini.NET.API_Models.API_Response.Success;
-using Gemini.NET.Helpers;
+﻿using GeminiDotNET.ApiModels.Response.Success;
 using GeminiDotNET.Helpers;
 using System.Net.Http.Headers;
 using System.Text;

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Models.Response
+namespace GeminiDotNET.ApiModels.Response
 {
     /// <summary>
     /// Represents details about the candidates tokens.

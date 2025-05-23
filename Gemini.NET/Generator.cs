@@ -1,9 +1,9 @@
-﻿using Gemini.NET.Client_Models;
-using Gemini.NET.Extensions;
-using GeminiDotNET.Client_Models;
+﻿using Gemini.NET.Extensions;
+using GeminiDotNET.ApiModels.ApiRequest;
+using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.ApiModels.Shared;
+using GeminiDotNET.ClientModels;
 using GeminiDotNET.Helpers;
-using Models.Enums;
-using Models.Request;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -15,6 +15,8 @@ namespace GeminiDotNET
 
         private readonly HttpClient _client;
         private readonly string? _apiKey;
+        private List<Content>? _contents;
+        private int? _chatMessageLimit;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Generator"/> class using API key.
@@ -68,6 +70,36 @@ namespace GeminiDotNET
         }
 
         /// <summary>
+        /// Enables chat history for the generator, optionally setting a limit on the number of chat messages to retain.
+        /// </summary>
+        /// <param name="chatMessageLimit">An optional limit on the number of chat messages to retain. If specified, only the most recent  <paramref
+        /// name="chatMessageLimit"/> messages will be kept. If null, no limit is applied.</param>
+        /// <returns>The current <see cref="Generator"/> instance with chat history enabled, allowing for method chaining.</returns>
+        public Generator EnableChatHistory(int? chatMessageLimit = null)
+        {
+            _contents = [];
+            if (chatMessageLimit.HasValue)
+            {
+                _chatMessageLimit = chatMessageLimit;
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Disables the chat history by clearing its contents and message limit.
+        /// </summary>
+        /// <remarks>After calling this method, the chat history will no longer retain any previous
+        /// messages or enforce a message limit. This method is typically used to reset the state of the chat
+        /// generator.</remarks>
+        /// <returns>The current <see cref="Generator"/> instance with chat history disabled, allowing for method chaining.</returns>
+        public Generator DisableChatHistory()
+        {
+            _contents = null;
+            _chatMessageLimit = null;
+            return this;
+        }
+
+        /// <summary>
         /// Generates content based on the provided API request.
         /// </summary>
         /// <param name="request"></param>
@@ -104,45 +136,53 @@ namespace GeminiDotNET
 
             try
             {
+                SetChatHistory(request.Contents);
+                if (_contents != null && _contents.Any())
+                {
+                    request.Contents = _contents;
+                }
                 var json = JsonHelper.AsString(request);
                 var body = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync(endpoint, body);
-                var responseData = await response.Content.ReadAsStringAsync();
+                var responseMessage = await _client.PostAsync(endpoint, body);
+                var responseMessageContent = await responseMessage.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
+                if (!responseMessage.IsSuccessStatusCode)
                 {
                     try
                     {
-                        var dto = JsonHelper.AsObject<Models.Response.Failed.ApiResponse>(responseData);
+                        var modelFailedResponse = JsonHelper.AsObject<ApiModels.Response.Failed.ApiResponse>(responseMessageContent);
 
-                        throw new GeminiException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", dto, new Exception(responseData));
+                        throw new GeminiException(modelFailedResponse == null ? "Undefined" : $"{modelFailedResponse.Error.Status} ({modelFailedResponse.Error.Code}): {modelFailedResponse.Error.Message}", modelFailedResponse, new Exception(responseMessageContent));
                     }
                     catch (Exception ex)
                     {
-                        var dto = new Models.Response.Failed.ApiResponse
+                        var dto = new ApiModels.Response.Failed.ApiResponse
                         {
-                            Error = new Models.Response.Failed.Error
+                            Error = new ApiModels.Response.Failed.Error
                             {
-                                Code = (int)response.StatusCode,
+                                Code = (int)responseMessage.StatusCode,
                                 Message = ex.Message,
                             }
                         };
 
-                        throw new GeminiException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", dto, new Exception(responseData));
+                        throw new GeminiException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", dto, new Exception(responseMessageContent));
                     }
                 }
                 else
                 {
                     try
                     {
-                        var dto = JsonHelper.AsObject<Models.Response.Success.ApiResponse>(responseData);
-                        var firstCandidate = dto?.Candidates?.FirstOrDefault();
+                        var modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(responseMessageContent);
+
+                        var firstCandidate = modelSuccessResponse?.Candidates?.FirstOrDefault();
                         var groudingMetadata = firstCandidate?.GroundingMetadata;
+
+                        SetChatHistory(modelSuccessResponse?.Candidates?.Select(c => c.Content));
 
                         var modelResponse = new ModelResponse
                         {
                             Content = firstCandidate?.Content?.Parts
-                                .FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text,
+                                .FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text?.Trim(),
                             GroundingDetail = groudingMetadata != null
                                 ? new GroundingDetail
                                 {
@@ -159,14 +199,14 @@ namespace GeminiDotNET
                                         }),
                                 }
                                 : null,
-                            FunctionCallingInfo = firstCandidate?.Content?.Parts
+                            FunctionCalls = firstCandidate?.Content?.Parts
                                 .Where(p => p.FunctionCall != null)
-                                .Select(f => new FunctionCallingInfo
-                                {
-                                    Name = f.FunctionCall?.Name,
-                                    ParameterModel = f.FunctionCall?.Args,
-                                })
-                                .ToList()
+                                .Select(f => f.FunctionCall)
+                                .ToList(),
+                            FunctionResponses = firstCandidate?.Content?.Parts
+                                .Where(p => p.FunctionResponse != null)
+                                .Select(f => f.FunctionResponse)
+                                .ToList(),
                         };
 
                         return modelResponse;
@@ -180,6 +220,20 @@ namespace GeminiDotNET
             catch (Exception ex)
             {
                 throw new InvalidOperationException(ex.Message, ex.InnerException);
+            }
+        }
+
+        private void SetChatHistory(IEnumerable<Content> contents)
+        {
+            if (_contents == null || !contents.Any())
+            {
+                return;
+            }
+
+            _contents.AddRange(contents);
+            if (_chatMessageLimit.HasValue)
+            {
+                _contents = [.. _contents.TakeLast(_chatMessageLimit.Value)];
             }
         }
     }

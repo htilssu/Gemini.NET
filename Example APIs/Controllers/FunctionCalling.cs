@@ -1,5 +1,8 @@
-﻿using Gemini.NET.API_Models.API_Request.Configurations.Tools;
-using GeminiDotNET;
+﻿using GeminiDotNET;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling;
+using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
+using GeminiDotNET.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers
@@ -8,14 +11,14 @@ namespace Example_APIs.Controllers
     [ApiController]
     public class FunctionCalling : ControllerBase
     {
-        [HttpPost("ChatToGetFunctionDeclarations")]
-        public async Task<IActionResult> ChatToGetFunctionDeclarations(string apiKey, string prompt)
+        [HttpPost("ChatWithFunctionCalling")]
+        public async Task<IActionResult> ChatWithFunctionCalling(string apiKey, string prompt)
         {
-            var generatorWithApiKey = new Generator(apiKey);
+            var generatorWithApiKey = new Generator(apiKey).EnableChatHistory();
             var functionDeclaration = new FunctionDeclaration
             {
                 Name = "GetWeather",
-                Description = "Get the current weather for a given location.",
+                Description = "Get the current weather for a given location at the given hour of the day.",
                 Parameters = new Parameters
                 {
                     Properties = new
@@ -23,22 +26,56 @@ namespace Example_APIs.Controllers
                         City = new
                         {
                             type = "string"
-                        }
+                        },
+                        Hour = new
+                        {
+                            type = "integer"
+                        },
                     }
                 }
             };
 
-            var apiRequest = new ApiRequestBuilder()
-                .WithPrompt(prompt)
-                .WithFunctionDeclarations([functionDeclaration])
-                .WithDefaultGenerationConfig()
-                .DisableAllSafetySettings()
-                .Build();
-
             try
             {
-                var response = await generatorWithApiKey.GenerateContentAsync(apiRequest, "gemini-2.0-flash-lite");
-                return Ok(response);
+                var apiRequest = new ApiRequestBuilder()
+                    .WithPrompt(prompt)
+                    .WithFunctionDeclarations([functionDeclaration], FunctionCallingMode.ANY)
+                    .WithDefaultGenerationConfig()
+                    .DisableAllSafetySettings()
+                    .Build();
+
+                var responseWithFunctionCall = await generatorWithApiKey.GenerateContentAsync(apiRequest, "gemini-2.0-flash-lite");
+
+                var functionResponses = new List<FunctionResponse>();
+
+                foreach (var function in responseWithFunctionCall.FunctionCalls)
+                {
+                    if (function.Name == "GetWeather")
+                    {
+                        var city = FunctionCallingHelper.GetParameterValue<string>(function, "City");
+                        var hour = FunctionCallingHelper.GetParameterValue<int>(function, "Hour");
+                        var weather = @"{ 'Weather' : 'sunny', 'Temperature' : 38 }";
+                        var functionResponse = new FunctionResponse
+                        {
+                            Name = function.Name,
+                            Response = new Response
+                            {
+                                Output = weather,
+                            }
+                        };
+                        functionResponses.Add(functionResponse);
+                    }
+                }
+
+                var apiRequestWithFunction = new ApiRequestBuilder()
+                    .WithFunctionResponses(functionResponses)
+                    .WithDefaultGenerationConfig()
+                    .DisableAllSafetySettings()
+                    .Build();
+
+                var responseWithFunctionResponse = await generatorWithApiKey.GenerateContentAsync(apiRequestWithFunction, "gemini-2.0-flash-lite");
+
+                return Ok(responseWithFunctionResponse);
             }
             catch (Exception ex)
             {

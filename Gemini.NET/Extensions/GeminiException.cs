@@ -1,4 +1,4 @@
-﻿using Models.Response.Failed;
+﻿using GeminiDotNET.ApiModels.Response.Failed;
 
 namespace Gemini.NET.Extensions
 {

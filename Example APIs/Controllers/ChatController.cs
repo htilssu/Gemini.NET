@@ -1,6 +1,6 @@
 ﻿using GeminiDotNET;
-using GeminiDotNET.API_Models.Enums;
-using GeminiDotNET.Client_Models;
+using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.ClientModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example_APIs.Controllers

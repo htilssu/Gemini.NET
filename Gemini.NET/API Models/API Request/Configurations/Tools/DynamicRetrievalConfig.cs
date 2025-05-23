@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Models.Request
+namespace GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools
 {
     public class DynamicRetrievalConfig
     {

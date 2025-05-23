@@ -1,4 +1,4 @@
-﻿namespace GeminiDotNET.Client_Models
+﻿namespace GeminiDotNET.ClientModels
 {
     /// <summary>
     /// Represents a grounding source with a domain and URL.

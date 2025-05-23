@@ -1,7 +1,10 @@
-﻿using Models.Shared;
+﻿using GeminiDotNET.ApiModels.ApiRequest.Configurations;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools;
+using GeminiDotNET.ApiModels.Request;
+using GeminiDotNET.ApiModels.Shared;
 using Newtonsoft.Json;
 
-namespace Models.Request
+namespace GeminiDotNET.ApiModels.ApiRequest
 {
     /// <summary>
     /// Represents a request to the Gemini API for generating content or performing tasks.
@@ -23,6 +26,12 @@ namespace Models.Request
         public GenerationConfig? GenerationConfig { get; set; }
 
         /// <summary>
+        /// The configuration for the tools that the model can use.
+        /// </summary>
+        [JsonProperty("toolConfig")]
+        public ToolConfig? ToolConfig { get; set; }
+
+        /// <summary>
         /// The system instructions that guide the model's behavior.
         /// This is optional and can be used to set specific context or constraints.
         /// </summary>
@@ -30,7 +39,7 @@ namespace Models.Request
         public SystemInstruction? SystemInstruction { get; set; }
 
         /// <summary>
-        /// (Optional) The list of tools available to the model.
+        /// The list of tools available to the model.
         /// Tools can include features like web search or function calling capabilities.
         /// This is optional and depends on the model's capabilities.
         /// </summary>

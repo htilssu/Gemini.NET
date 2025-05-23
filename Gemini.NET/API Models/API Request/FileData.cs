@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Gemini.NET.API_Models.API_Request
+namespace GeminiDotNET.ApiModels.ApiRequest
 {
     public class FileData
     {

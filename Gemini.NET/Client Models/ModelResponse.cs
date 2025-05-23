@@ -1,6 +1,6 @@
-﻿using Gemini.NET.Client_Models;
+﻿using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
 
-namespace GeminiDotNET.Client_Models
+namespace GeminiDotNET.ClientModels
 {
     /// <summary>
     /// The response with a result and optional grounding details.
@@ -20,6 +20,11 @@ namespace GeminiDotNET.Client_Models
         /// <summary>
         /// The information of the function to call
         /// </summary>
-        public List<FunctionCallingInfo>? FunctionCallingInfo { get; set; }
+        public List<FunctionCall>? FunctionCalls { get; set; }
+
+        /// <summary>
+        /// The information of the function responses
+        /// </summary>
+        public List<FunctionResponse>? FunctionResponses { get; set; }
     }
 }
