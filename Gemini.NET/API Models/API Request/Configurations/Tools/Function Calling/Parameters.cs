@@ -9,6 +9,9 @@ namespace GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling
         public string Type { get; } = "object";
 
         [JsonProperty("properties")]
-        public object Properties { get; set; }
+        public required object Properties { get; set; }
+
+        [JsonProperty("required")]
+        public List<string>? Required { get; set; }
     }
 }

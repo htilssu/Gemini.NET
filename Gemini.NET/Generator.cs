@@ -1,6 +1,7 @@
 ﻿using Gemini.NET.Extensions;
 using GeminiDotNET.ApiModels.ApiRequest;
 using GeminiDotNET.ApiModels.Enums;
+using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
 using GeminiDotNET.ApiModels.Shared;
 using GeminiDotNET.ClientModels;
 using GeminiDotNET.Helpers;
@@ -137,7 +138,7 @@ namespace GeminiDotNET
             try
             {
                 SetChatHistory(request.Contents);
-                if (_contents != null && _contents.Any())
+                if (_contents != null && _contents.Count > 0)
                 {
                     request.Contents = _contents;
                 }
@@ -177,7 +178,7 @@ namespace GeminiDotNET
                         var firstCandidate = modelSuccessResponse?.Candidates?.FirstOrDefault();
                         var groudingMetadata = firstCandidate?.GroundingMetadata;
 
-                        SetChatHistory(modelSuccessResponse?.Candidates?.Select(c => c.Content));
+                        SetChatHistory(modelSuccessResponse?.Candidates?.Select(c => c.Content)!);
 
                         var modelResponse = new ModelResponse
                         {
@@ -199,13 +200,17 @@ namespace GeminiDotNET
                                         }),
                                 }
                                 : null,
-                            FunctionCalls = firstCandidate?.Content?.Parts
+                            FunctionCalls = firstCandidate?.Content?.Parts?
                                 .Where(p => p.FunctionCall != null)
-                                .Select(f => f.FunctionCall)
+                                .Select(p => p.FunctionCall)
+                                .Where(fc => fc != null)
+                                .Select(fc => fc!)
                                 .ToList(),
-                            FunctionResponses = firstCandidate?.Content?.Parts
+                            FunctionResponses = firstCandidate?.Content?.Parts?
                                 .Where(p => p.FunctionResponse != null)
-                                .Select(f => f.FunctionResponse)
+                                .Select(p => p.FunctionResponse)
+                                .Where(fr => fr != null)
+                                .Select(fr => fr!)
                                 .ToList(),
                         };
 
@@ -231,6 +236,13 @@ namespace GeminiDotNET
             }
 
             _contents.AddRange(contents);
+
+            _contents = [.. _contents.Where(c => c.Parts != null && c.Parts.Count > 0 && c.Parts.Exists(p => p.InlineData != null 
+                || p.FunctionResponse != null 
+                || p.FunctionCall != null
+                || p.FileData != null
+                || !string.IsNullOrEmpty(p.Text)))];
+
             if (_chatMessageLimit.HasValue)
             {
                 _contents = [.. _contents.TakeLast(_chatMessageLimit.Value)];
