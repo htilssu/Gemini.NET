@@ -36,6 +36,21 @@ namespace GeminiDotNET.Helpers
             return default;
         }
 
+        public static FunctionResponse CreateResponse(Delegate del, string output) => new()
+        {
+            Name = nameof(del.Method),
+            Response = new Response
+            {
+                Output = output
+            }
+        };
+
+        public static FunctionResponse CreateResponse(string name, string output) => new()
+        {
+            Name = name,
+            Response = new Response { Output = output }
+        };
+
         private static T? ConvertValue<T>(object? val)
         {
             if (val == null) return default;

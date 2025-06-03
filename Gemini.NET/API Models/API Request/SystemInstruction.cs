@@ -16,7 +16,7 @@ namespace GeminiDotNET.ApiModels.Request
         /// Default value is "user".
         /// </summary>
         [JsonProperty("role")]
-        public string Role { get; set; } = EnumHelper.GetDescription(Enums.Role.User);
+        public string Role { get; set; } = Enums.Role.User.GetDescription();
 
         /// <summary>
         /// The list of content parts that make up the system instruction.

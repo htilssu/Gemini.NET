@@ -1,7 +1,6 @@
 ﻿using Gemini.NET.Extensions;
 using GeminiDotNET.ApiModels.ApiRequest;
 using GeminiDotNET.ApiModels.Enums;
-using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
 using GeminiDotNET.ApiModels.Shared;
 using GeminiDotNET.ClientModels;
 using GeminiDotNET.Helpers;
@@ -16,7 +15,7 @@ namespace GeminiDotNET
 
         private readonly HttpClient _client;
         private readonly string? _apiKey;
-        private List<Content>? _contents;
+        public List<Content>? HistoryContent { get; set; }
         private int? _chatMessageLimit;
 
         /// <summary>
@@ -28,7 +27,7 @@ namespace GeminiDotNET
         {
             if (!Validator.CanBeValidApiKey(apiKey))
             {
-                throw new ArgumentNullException(nameof(apiKey), "Invalid or expired API key.");
+                throw new InvalidOperationException("Invalid API key format.");
             }
 
             _apiKey = apiKey;
@@ -78,7 +77,7 @@ namespace GeminiDotNET
         /// <returns>The current <see cref="Generator"/> instance with chat history enabled, allowing for method chaining.</returns>
         public Generator EnableChatHistory(int? chatMessageLimit = null)
         {
-            _contents = [];
+            HistoryContent = [];
             if (chatMessageLimit.HasValue)
             {
                 _chatMessageLimit = chatMessageLimit;
@@ -95,7 +94,7 @@ namespace GeminiDotNET
         /// <returns>The current <see cref="Generator"/> instance with chat history disabled, allowing for method chaining.</returns>
         public Generator DisableChatHistory()
         {
-            _contents = null;
+            HistoryContent = null;
             _chatMessageLimit = null;
             return this;
         }
@@ -110,7 +109,7 @@ namespace GeminiDotNET
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<ModelResponse> GenerateContentAsync(ApiRequest request, ModelVersion modelVersion = ModelVersion.Gemini_20_Flash_Lite)
         {
-            return await GenerateContentAsync(request, EnumHelper.GetDescription(modelVersion));
+            return await GenerateContentAsync(request, modelVersion.GetDescription());
         }
 
         /// <summary>
@@ -138,14 +137,14 @@ namespace GeminiDotNET
             try
             {
                 SetChatHistory(request.Contents);
-                if (_contents != null && _contents.Count > 0)
+                if (HistoryContent != null && HistoryContent.Count > 0)
                 {
-                    request.Contents = _contents;
+                    request.Contents = HistoryContent;
                 }
-                var json = JsonHelper.AsString(request);
+                var json = request.AsString();
                 var body = new StringContent(json, Encoding.UTF8, "application/json");
                 var responseMessage = await _client.PostAsync(endpoint, body);
-                var responseMessageContent = await responseMessage.Content.ReadAsStringAsync();
+                string responseMessageContent = await responseMessage.Content.ReadAsStringAsync();
 
                 if (!responseMessage.IsSuccessStatusCode)
                 {
@@ -153,7 +152,11 @@ namespace GeminiDotNET
                     {
                         var modelFailedResponse = JsonHelper.AsObject<ApiModels.Response.Failed.ApiResponse>(responseMessageContent);
 
-                        throw new GeminiException(modelFailedResponse == null ? "Undefined" : $"{modelFailedResponse.Error.Status} ({modelFailedResponse.Error.Code}): {modelFailedResponse.Error.Message}", modelFailedResponse, new Exception(responseMessageContent));
+                        throw new GeminiException(modelFailedResponse == null
+                                ? "Undefined"
+                                : $"{modelFailedResponse.Error.Status} ({modelFailedResponse.Error.Code}): {modelFailedResponse.Error.Message}",
+                            modelFailedResponse,
+                            new Exception(responseMessageContent));
                     }
                     catch (Exception ex)
                     {
@@ -162,90 +165,82 @@ namespace GeminiDotNET
                             Error = new ApiModels.Response.Failed.Error
                             {
                                 Code = (int)responseMessage.StatusCode,
-                                Message = ex.Message,
+                                Message = $"{ex.Message}\n{ex.StackTrace}",
                             }
                         };
 
-                        throw new GeminiException(dto == null ? "Undefined" : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}", dto, new Exception(responseMessageContent));
+                        throw new GeminiException(dto == null
+                                ? "Undefined"
+                                : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}",
+                            dto,
+                            new Exception(responseMessageContent));
                     }
                 }
-                else
+
+                ApiModels.Response.Success.ApiResponse modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(responseMessageContent);
+
+                SetChatHistory(modelSuccessResponse.Candidates.Select(c => c.Content).Where(c => c != null));
+
+                var firstCandidate = modelSuccessResponse.Candidates.FirstOrDefault();
+                var parts = firstCandidate?.Content?.Parts;
+                var groudingMetadata = firstCandidate?.GroundingMetadata;
+
+                var modelResponse = new ModelResponse
                 {
-                    try
-                    {
-                        var modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(responseMessageContent);
-
-                        var firstCandidate = modelSuccessResponse?.Candidates?.FirstOrDefault();
-                        var groudingMetadata = firstCandidate?.GroundingMetadata;
-
-                        SetChatHistory(modelSuccessResponse?.Candidates?.Select(c => c.Content)!);
-
-                        var modelResponse = new ModelResponse
+                    Content = parts?.FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text?.Trim(),
+                    GroundingDetail = groudingMetadata != null
+                        ? new GroundingDetail
                         {
-                            Content = firstCandidate?.Content?.Parts
-                                .FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text?.Trim(),
-                            GroundingDetail = groudingMetadata != null
-                                ? new GroundingDetail
+                            RenderedContentAsHtml = groudingMetadata?.SearchEntryPoint?.RenderedContent ?? null,
+                            SearchSuggestions = groudingMetadata?.WebSearchQueries,
+                            ReliableInformation = groudingMetadata?.GroundingSupports?
+                                .OrderByDescending(s => s.ConfidenceScores.Max())
+                                .Select(s => s.Segment.Text),
+                            Sources = groudingMetadata?.GroundingChunks?
+                                .Select(c => new GroundingSource
                                 {
-                                    RenderedContentAsHtml = groudingMetadata?.SearchEntryPoint?.RenderedContent ?? null,
-                                    SearchSuggestions = groudingMetadata?.WebSearchQueries,
-                                    ReliableInformation = groudingMetadata?.GroundingSupports?
-                                        .OrderByDescending(s => s.ConfidenceScores.Max())
-                                        .Select(s => s.Segment.Text),
-                                    Sources = groudingMetadata?.GroundingChunks?
-                                        .Select(c => new GroundingSource
-                                        {
-                                            Domain = c.Web.Title,
-                                            Url = c.Web.Uri,
-                                        }),
-                                }
-                                : null,
-                            FunctionCalls = firstCandidate?.Content?.Parts?
-                                .Where(p => p.FunctionCall != null)
-                                .Select(p => p.FunctionCall)
-                                .Where(fc => fc != null)
-                                .Select(fc => fc!)
-                                .ToList(),
-                            FunctionResponses = firstCandidate?.Content?.Parts?
-                                .Where(p => p.FunctionResponse != null)
-                                .Select(p => p.FunctionResponse)
-                                .Where(fr => fr != null)
-                                .Select(fr => fr!)
-                                .ToList(),
-                        };
+                                    Domain = c.Web.Title,
+                                    Url = c.Web.Uri,
+                                }),
+                        }
+                        : null,
 
-                        return modelResponse;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new InvalidOperationException($"Failed to parse response from JSON: {ex.Message}", ex.InnerException);
-                    }
-                }
+                    FunctionCalls = parts != null && parts.Any(p => p.FunctionCall != null)
+                        ? [.. parts.Where(p => p.FunctionCall != null).Select(p => p.FunctionCall!)]
+                        : null,
+                    FunctionResponses = parts != null && parts.Any(p => p.FunctionResponse != null)
+                        ? [.. parts.Where(p => p.FunctionResponse != null).Select(p => p.FunctionResponse!)]
+                        : null,
+                };
+
+                return modelResponse;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException(ex.Message, ex.InnerException);
+                throw new InvalidOperationException($"{ex.Message}\n{ex.StackTrace}", ex.InnerException);
             }
         }
 
         private void SetChatHistory(IEnumerable<Content> contents)
         {
-            if (_contents == null || !contents.Any())
+            if (HistoryContent == null || !contents.Any())
             {
                 return;
             }
 
-            _contents.AddRange(contents);
+            HistoryContent.AddRange(contents);
 
-            _contents = [.. _contents.Where(c => c.Parts != null && c.Parts.Count > 0 && c.Parts.Exists(p => p.InlineData != null 
-                || p.FunctionResponse != null 
-                || p.FunctionCall != null
-                || p.FileData != null
-                || !string.IsNullOrEmpty(p.Text)))];
+            HistoryContent = [.. HistoryContent.Where(c => c.Parts != null
+                && c.Parts.Count > 0
+                && c.Parts.Exists(p => p.InlineData != null
+                    || p.FunctionResponse != null
+                    || p.FunctionCall != null
+                    || p.FileData != null
+                    || !string.IsNullOrEmpty(p.Text)))];
 
             if (_chatMessageLimit.HasValue)
             {
-                _contents = [.. _contents.TakeLast(_chatMessageLimit.Value)];
+                HistoryContent = [.. HistoryContent.TakeLast(_chatMessageLimit.Value)];
             }
         }
     }

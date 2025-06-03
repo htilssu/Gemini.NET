@@ -25,6 +25,6 @@ namespace GeminiDotNET.ApiModels.ApiRequest.Configurations
         /// Default value is BLOCK_NONE, allowing all content in this category.
         /// </summary>
         [JsonProperty("threshold")]
-        public string Threshold { get; set; } = EnumHelper.GetDescription(SafetySettingHarmThreshold.BlockNone);
+        public string Threshold { get; set; } = SafetySettingHarmThreshold.BlockNone.GetDescription();
     }
 }

@@ -123,23 +123,23 @@ namespace GeminiDotNET
                 [
                     new SafetySetting
                     {
-                        Category = EnumHelper.GetDescription(SafetySettingHarmCategory.DangerousContent),
+                        Category = SafetySettingHarmCategory.DangerousContent.GetDescription(),
                     },
                     new SafetySetting
                     {
-                        Category = EnumHelper.GetDescription(SafetySettingHarmCategory.Harassment),
+                        Category = SafetySettingHarmCategory.Harassment.GetDescription(),
                     },
                     new SafetySetting
                     {
-                        Category = EnumHelper.GetDescription(SafetySettingHarmCategory.CivicIntegrity),
+                        Category = SafetySettingHarmCategory.CivicIntegrity.GetDescription(),
                     },
                     new SafetySetting
                     {
-                        Category = EnumHelper.GetDescription(SafetySettingHarmCategory.HateSpeech),
+                        Category = SafetySettingHarmCategory.HateSpeech.GetDescription(),
                     },
                     new SafetySetting
                     {
-                        Category = EnumHelper.GetDescription(SafetySettingHarmCategory.SexuallyExplicit),
+                        Category = SafetySettingHarmCategory.SexuallyExplicit.GetDescription(),
                     },
                 ];
 
@@ -214,7 +214,7 @@ namespace GeminiDotNET
                             Text = message.Content
                         }
                     ],
-                    Role = EnumHelper.GetDescription(message.Role),
+                    Role = message.Role.GetDescription(),
                 })
                 .ToList();
 
@@ -250,7 +250,7 @@ namespace GeminiDotNET
             }
 
             _config.ResponseSchema = schema;
-            _config.ResponseMimeType = EnumHelper.GetDescription(ResponseMimeType.Json);
+            _config.ResponseMimeType = ResponseMimeType.Json.GetDescription();
             return this;
         }
 
@@ -289,12 +289,12 @@ namespace GeminiDotNET
                         {
                             InlineData = new InlineData
                             {
-                                MimeType = EnumHelper.GetDescription(i.MimeType),
+                                MimeType = i.MimeType.GetDescription(),
                                 Data = i.Base64Data
                             }
                         })
                         .ToList(),
-                    Role = EnumHelper.GetDescription(Role.User),
+                    Role = Role.User.GetDescription(),
                 });
             }
 
@@ -306,7 +306,7 @@ namespace GeminiDotNET
                     {
                         FileData = _file
                     } ],
-                    Role = EnumHelper.GetDescription(Role.User),
+                    Role = Role.User.GetDescription(),
                 });
             }
 
@@ -319,7 +319,7 @@ namespace GeminiDotNET
                         {
                             FunctionResponse = c
                         })],
-                    Role = EnumHelper.GetDescription(Role.User),
+                    Role = Role.User.GetDescription(),
                 });
             }
 
@@ -334,7 +334,7 @@ namespace GeminiDotNET
                         Text = _prompt
                     }
                 ],
-                    Role = EnumHelper.GetDescription(Role.User),
+                    Role = Role.User.GetDescription(),
                 });
             }
 

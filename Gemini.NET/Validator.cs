@@ -19,12 +19,7 @@
 
             apiKey = apiKey.Trim();
 
-            if (apiKey.Length != 39)
-            {
-                return false;
-            }
-
-            if (!apiKey.StartsWith("AIza"))
+            if (!apiKey.StartsWith("AIzaSy") || apiKey.Length != 39)
             {
                 return false;
             }
@@ -38,19 +33,19 @@
         /// <returns></returns>
         public static async Task<bool> IsValidApiKeyAsync(string apiKey)
         {
-            if (!CanBeValidApiKey(apiKey))
-            {
-                return false;
-            }
-
             try
             {
-                using var client = new HttpClient();
-                using var response = await client.GetAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite?key={apiKey}");
+                var generator = new Generator(apiKey);
+                var apiRequest = new ApiRequestBuilder()
+                    .WithPrompt("Print out `Hello world`")
+                    .DisableAllSafetySettings()
+                    .WithDefaultGenerationConfig(0.2F, 400)
+                    .Build();
 
-                return response.IsSuccessStatusCode;
+                await generator.GenerateContentAsync(apiRequest);
+                return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }

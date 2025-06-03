@@ -25,7 +25,7 @@ namespace GeminiDotNET
             var safeDisplayName = string.IsNullOrEmpty(displayName) ? Path.GetFileName(filePath) : displayName.Trim();
 
             var mimeTypeValue = MimeTypeHelper.GetMimeType(filePath);
-            var mimeType = EnumHelper.GetDescription(mimeTypeValue);
+            var mimeType = mimeTypeValue.GetDescription();
             var fileSize = new FileInfo(filePath).Length;
 
             var startUrl = $"{BaseUrl}/upload/v1beta/files?key={_apiKey}";

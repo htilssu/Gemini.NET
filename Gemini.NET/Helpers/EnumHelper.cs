@@ -13,7 +13,7 @@ namespace GeminiDotNET.Helpers
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string GetDescription(Enum value)
+        public static string GetDescription(this Enum value)
         {
             FieldInfo? fi = value.GetType().GetField(value.ToString());
             if (fi != null)

@@ -13,7 +13,7 @@ namespace GeminiDotNET.Helpers
         /// <typeparam name="T">The type of the object to serialize.</typeparam>
         /// <param name="obj">The object to serialize.</param>
         /// <returns>A JSON string representation of the object.</returns>
-        public static string AsString<T>(T obj)
+        public static string AsString<T>(this T obj)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings
             {

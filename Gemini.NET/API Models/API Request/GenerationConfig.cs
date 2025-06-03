@@ -50,7 +50,7 @@ namespace GeminiDotNET.ApiModels.Request
         /// Default value is text/plain.
         /// </summary>
         [JsonProperty("responseMimeType")]
-        internal string ResponseMimeType { get; set; } = EnumHelper.GetDescription(Enums.ResponseMimeType.PlainText);
+        internal string ResponseMimeType { get; set; } = Enums.ResponseMimeType.PlainText.GetDescription();
 
         [JsonProperty("responseSchema")]
         public object? ResponseSchema { get; set; }
