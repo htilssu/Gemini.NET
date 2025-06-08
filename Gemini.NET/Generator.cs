@@ -1,8 +1,8 @@
-﻿using Gemini.NET.Extensions;
-using GeminiDotNET.ApiModels.ApiRequest;
+﻿using GeminiDotNET.ApiModels.ApiRequest;
 using GeminiDotNET.ApiModels.Enums;
 using GeminiDotNET.ApiModels.Shared;
 using GeminiDotNET.ClientModels;
+using GeminiDotNET.Extensions;
 using GeminiDotNET.Helpers;
 using System.Net.Http.Headers;
 using System.Text;
@@ -177,17 +177,15 @@ namespace GeminiDotNET
                     }
                 }
 
-                ApiModels.Response.Success.ApiResponse modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(responseMessageContent);
+                var modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(responseMessageContent);
 
-                SetChatHistory(modelSuccessResponse.Candidates.Select(c => c.Content).Where(c => c != null));
-
-                var firstCandidate = modelSuccessResponse.Candidates.FirstOrDefault();
+                var firstCandidate = modelSuccessResponse?.Candidates.FirstOrDefault();
                 var parts = firstCandidate?.Content?.Parts;
                 var groudingMetadata = firstCandidate?.GroundingMetadata;
 
                 var modelResponse = new ModelResponse
                 {
-                    Content = parts?.FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text?.Trim(),
+                    Content = parts?.FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text,
                     GroundingDetail = groudingMetadata != null
                         ? new GroundingDetail
                         {
@@ -213,30 +211,44 @@ namespace GeminiDotNET
                         : null,
                 };
 
+                if(modelSuccessResponse != null && modelSuccessResponse.Candidates.Count > 0)
+                {
+                    SetChatHistory(modelSuccessResponse.Candidates.Select(c => c.Content).ToList());
+                }
+
                 return modelResponse;
             }
             catch (Exception ex)
             {
+                SetChatHistory(
+                        [
+                            new Content
+                            {
+                                Parts = [new Part { Text = ex.Message }],
+                                Role = "model"
+                            }
+                        ]);
+
                 throw new InvalidOperationException($"{ex.Message}\n{ex.StackTrace}", ex.InnerException);
             }
         }
 
-        private void SetChatHistory(IEnumerable<Content> contents)
+        private void SetChatHistory(List<Content?> contents)
         {
-            if (HistoryContent == null || !contents.Any())
+            if (HistoryContent == null || contents == null || contents.Count == 0)
             {
                 return;
             }
 
-            HistoryContent.AddRange(contents);
+            foreach(var content in contents)
+            {
+                if (content == null || content.Parts == null || content.Parts.Count == 0)
+                {
+                    continue;
+                }
 
-            HistoryContent = [.. HistoryContent.Where(c => c.Parts != null
-                && c.Parts.Count > 0
-                && c.Parts.Exists(p => p.InlineData != null
-                    || p.FunctionResponse != null
-                    || p.FunctionCall != null
-                    || p.FileData != null
-                    || !string.IsNullOrEmpty(p.Text)))];
+                HistoryContent.Add(content);
+            }
 
             if (_chatMessageLimit.HasValue)
             {

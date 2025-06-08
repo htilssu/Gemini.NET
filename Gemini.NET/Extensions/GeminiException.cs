@@ -1,6 +1,6 @@
 ﻿using GeminiDotNET.ApiModels.Response.Failed;
 
-namespace Gemini.NET.Extensions
+namespace GeminiDotNET.Extensions
 {
     public class GeminiException : Exception
     {

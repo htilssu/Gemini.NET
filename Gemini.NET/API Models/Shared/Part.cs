@@ -38,7 +38,7 @@ namespace GeminiDotNET.ApiModels.Shared
         /// <summary>
         /// The response returned by the function.
         /// </summary>
-        [JsonProperty("function_response")]
+        [JsonProperty("functionResponse")]
         public FunctionResponse? FunctionResponse { get; set; }
     }
 }

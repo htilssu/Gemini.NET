@@ -19,34 +19,16 @@ namespace GeminiDotNET
     {
         private string? _prompt;
         private string? _systemInstruction;
-        private bool _useGrounding = false;
         private GenerationConfig? _config;
         private FileData? _file;
+        private IEnumerable<Tool>? _tools;
 
         private IEnumerable<SafetySetting>? _safetySettings;
         private IEnumerable<ImageData>? _images;
-        private IEnumerable<FunctionDeclaration>? _functionDeclarations;
         private IEnumerable<FunctionResponse>? _functionResponses;
         private FunctionCallingMode _functionCallingMode;
 
         private List<Content>? _chatHistory;
-
-        /// <summary>
-        /// Set the function declarations for the API request.
-        /// </summary>
-        /// <param name="functions"></param>
-        /// <returns></returns>
-        public ApiRequestBuilder WithFunctionDeclarations(IEnumerable<FunctionDeclaration> functions, FunctionCallingMode mode = FunctionCallingMode.AUTO)
-        {
-            if (functions == null || !functions.Any())
-            {
-                throw new ArgumentNullException(nameof(functions), "Function declarations can't be null or empty.");
-            }
-
-            _functionDeclarations = functions;
-            _functionCallingMode = mode;
-            return this;
-        }
 
         public ApiRequestBuilder WithFunctionResponses(IEnumerable<FunctionResponse> functionResponses)
         {
@@ -58,12 +40,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the system instruction for the API request.
-        /// </summary>
-        /// <param name="systemInstruction">The system instruction to set.</param>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the system instruction is null or empty.</exception>
         public ApiRequestBuilder WithSystemInstruction(string systemInstruction)
         {
             if (string.IsNullOrEmpty(systemInstruction))
@@ -75,12 +51,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the generation configuration for the API request.
-        /// </summary>
-        /// <param name="config">The generation configuration to set.</param>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the temperature is out of the valid range (0.0 to 2.0).</exception>
         public ApiRequestBuilder WithGenerationConfig(GenerationConfig config)
         {
             if (config.Temperature < 0.0F || config.Temperature > 2.0F)
@@ -92,31 +62,24 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Enables grounding for the API request.
-        /// </summary>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
-        public ApiRequestBuilder EnableGrounding()
+        public ApiRequestBuilder WithTools(ToolBuilder toolBuilder)
         {
-            _useGrounding = true;
+            _tools = toolBuilder.Build();
             return this;
         }
 
-        /// <summary>
-        /// Sets the safety settings for the API request.
-        /// </summary>
-        /// <param name="safetySettings">The list of safety settings to set.</param>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
+        public ApiRequestBuilder SetFunctionCallingMode(FunctionCallingMode mode)
+        {
+            _functionCallingMode = mode;
+            return this;
+        }
+
         public ApiRequestBuilder WithSafetySettings(IEnumerable<SafetySetting> safetySettings)
         {
             _safetySettings = safetySettings;
             return this;
         }
 
-        /// <summary>
-        /// Disables all safety settings for the API request.
-        /// </summary>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
         public ApiRequestBuilder DisableAllSafetySettings()
         {
             _safetySettings =
@@ -146,13 +109,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the default generation configuration for the API request.
-        /// </summary>
-        /// <param name="temperature">The sampling temperature to set.</param>
-        /// <param name="maxOutputTokens">The maximum number of tokens in the generated output.</param>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the temperature is out of the valid range (0.0 to 2.0).</exception>
         public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1, int maxOutputTokens = 65536)
         {
             if (temperature < 0.0F || temperature > 2.0F)
@@ -174,12 +130,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the prompt for the API request.
-        /// </summary>
-        /// <param name="prompt">The prompt to set.</param>
-        /// <returns>The current instance of <see cref="ApiRequestBuilder"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the prompt is null or empty.</exception>
         public ApiRequestBuilder WithPrompt(string prompt)
         {
             if (string.IsNullOrEmpty(prompt))
@@ -191,12 +141,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the chat history for the API request.
-        /// </summary>
-        /// <param name="chatMessages"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
         public ApiRequestBuilder WithChatHistory(IEnumerable<ChatMessage> chatMessages)
         {
             if (chatMessages == null || !chatMessages.Any())
@@ -221,10 +165,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the Base64 images for the API request.
-        /// </summary>
-        /// <returns></returns>
         public ApiRequestBuilder WithBase64Images(IEnumerable<string> base64Images)
         {
             _images = base64Images.Select(ImageHelper.Base64ToImageData);
@@ -237,11 +177,6 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Sets the response schema for the API request that strictly follows the OpenAPI specification.
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <returns></returns>
         public ApiRequestBuilder WithResponseSchema(object schema)
         {
             if (_config == null)
@@ -265,17 +200,22 @@ namespace GeminiDotNET
             return this;
         }
 
-        /// <summary>
-        /// Builds the API request with the configured parameters.
-        /// </summary>
-        /// <returns>The constructed <see cref="ApiRequest"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the prompt is null or empty.</exception>
         public ApiRequest Build()
         {
             var apiRequest = new ApiRequest
             {
                 GenerationConfig = _config,
-                SafetySettings = _safetySettings?.ToList()
+                SafetySettings = _safetySettings?.ToList(),
+                Tools = _tools?.ToList(),
+                ToolConfig = _tools != null && _tools.Any()
+                    ? new ToolConfig
+                    {
+                        FunctionCallingConfig = new FunctionCallingConfig
+                        {
+                            Mode = _functionCallingMode,
+                        }
+                    }
+                    : null
             };
 
             var contents = _chatHistory ?? [];
@@ -328,12 +268,12 @@ namespace GeminiDotNET
                 contents.Add(new Content
                 {
                     Parts =
-                [
-                    new Part
-                    {
-                        Text = _prompt
-                    }
-                ],
+                    [
+                        new Part
+                        {
+                            Text = _prompt
+                        }
+                    ],
                     Role = Role.User.GetDescription(),
                 });
             }
@@ -352,33 +292,6 @@ namespace GeminiDotNET
                         }
                     ]
                 };
-
-            if (_useGrounding)
-            {
-                apiRequest.Tools ??= [];
-                apiRequest.Tools.Add(new Tool
-                {
-                    GoogleSearch = new GoogleSearch()
-                });
-            }
-
-            if (_functionDeclarations != null && _functionDeclarations.Any())
-            {
-                apiRequest.Tools ??= [];
-
-                apiRequest.ToolConfig = new ToolConfig
-                {
-                    FunctionCallingConfig = new FunctionCallingConfig
-                    {
-                        Mode = _functionCallingMode,
-                    }
-                };
-
-                apiRequest.Tools.Add(new Tool
-                {
-                    FunctionDeclarations = _functionDeclarations.ToList()
-                });
-            }
 
             return apiRequest;
         }

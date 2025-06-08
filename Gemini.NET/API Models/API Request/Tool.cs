@@ -1,4 +1,5 @@
-﻿using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools;
+﻿using Gemini.NET.API_Models.API_Request.Configurations.Tools;
+using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools;
 using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling;
 using Newtonsoft.Json;
 
@@ -16,6 +17,13 @@ namespace GeminiDotNET.ApiModels.Shared
         /// </summary>
         [JsonProperty("googleSearch")]
         public GoogleSearch? GoogleSearch { get; set; }
+
+
+        /// <summary>
+        /// Gets or sets the context information for a URL, including metadata or additional details.
+        /// </summary>
+        [JsonProperty("urlContext")]
+        public UrlContext? UrlContext { get; set; }
 
         /// <summary>
         /// The function calling tool configuration.
