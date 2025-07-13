@@ -9,20 +9,16 @@ namespace GeminiDotNET.ApiModels.Enums
     /// </summary>
     public enum ModelVersion : sbyte
     {
-        /// <summary>
-        /// Gemini 2.0 Flash Lite model version.
-        /// Preview version of a lightweight, fast model.
-        /// Ideal for simple tasks requiring minimal resource usage.
-        /// </summary>
         [Description("gemini-2.0-flash-lite")]
         Gemini_20_Flash_Lite,
 
-        /// <summary>
-        /// Gemini 2.0 Flash model version.
-        /// Latest stable flash model with balanced performance.
-        /// Suitable for general-purpose applications requiring fast responses.
-        /// </summary>
         [Description("gemini-2.0-flash")]
         Gemini_20_Flash,
+
+        [Description("gemini-2.5-flash")]
+        Gemini_25_Flash,
+
+        [Description("gemini-2.5-pro")]
+        Gemini_25_Pro,
     }
 }

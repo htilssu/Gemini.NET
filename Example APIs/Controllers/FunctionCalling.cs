@@ -1,6 +1,5 @@
 ﻿using GeminiDotNET;
 using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling;
-using GeminiDotNET.ApiModels.Enums;
 using GeminiDotNET.ApiModels.Response.Success.FunctionCalling;
 using GeminiDotNET.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +38,6 @@ namespace Example_APIs.Controllers
             {
                 var apiRequest = new ApiRequestBuilder()
                     .WithPrompt(prompt)
-                    .WithFunctionDeclarations([functionDeclaration], FunctionCallingMode.ANY)
                     .WithDefaultGenerationConfig()
                     .DisableAllSafetySettings()
                     .Build();

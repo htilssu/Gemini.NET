@@ -16,6 +16,8 @@ namespace GeminiDotNET
         private readonly HttpClient _client;
         private readonly string? _apiKey;
         public List<Content>? HistoryContent { get; set; }
+        public string RequestAsRawString { get; private set; } = string.Empty;
+        public string ResponseAsRawString { get; private set; } = string.Empty;
         private int? _chatMessageLimit;
 
         /// <summary>
@@ -141,22 +143,22 @@ namespace GeminiDotNET
                 {
                     request.Contents = HistoryContent;
                 }
-                var json = request.AsString();
-                var body = new StringContent(json, Encoding.UTF8, "application/json");
+                RequestAsRawString = request.AsString();
+                var body = new StringContent(RequestAsRawString, Encoding.UTF8, "application/json");
                 var responseMessage = await _client.PostAsync(endpoint, body);
-                string responseMessageContent = await responseMessage.Content.ReadAsStringAsync();
+                ResponseAsRawString = await responseMessage.Content.ReadAsStringAsync();
 
                 if (!responseMessage.IsSuccessStatusCode)
                 {
                     try
                     {
-                        var modelFailedResponse = JsonHelper.AsObject<ApiModels.Response.Failed.ApiResponse>(responseMessageContent);
+                        var modelFailedResponse = JsonHelper.AsObject<ApiModels.Response.Failed.ApiResponse>(ResponseAsRawString);
 
                         throw new GeminiException(modelFailedResponse == null
                                 ? "Undefined"
                                 : $"{modelFailedResponse.Error.Status} ({modelFailedResponse.Error.Code}): {modelFailedResponse.Error.Message}",
                             modelFailedResponse,
-                            new Exception(responseMessageContent));
+                            new Exception(ResponseAsRawString));
                     }
                     catch (Exception ex)
                     {
@@ -173,19 +175,26 @@ namespace GeminiDotNET
                                 ? "Undefined"
                                 : $"{dto.Error.Status} ({dto.Error.Code}): {dto.Error.Message}",
                             dto,
-                            new Exception(responseMessageContent));
+                            new Exception(ResponseAsRawString));
                     }
                 }
 
-                var modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(responseMessageContent);
+                var modelSuccessResponse = JsonHelper.AsObject<ApiModels.Response.Success.ApiResponse>(ResponseAsRawString);
 
                 var firstCandidate = modelSuccessResponse?.Candidates.FirstOrDefault();
                 var parts = firstCandidate?.Content?.Parts;
                 var groudingMetadata = firstCandidate?.GroundingMetadata;
 
+                var texts = modelSuccessResponse?.Candidates
+                    .Select(c => c.Content)
+                    .SelectMany(c => c.Parts)
+                    .Select(p => p.Text)
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .ToList();
+
                 var modelResponse = new ModelResponse
                 {
-                    Content = parts?.FirstOrDefault(p => !string.IsNullOrEmpty(p.Text))?.Text,
+                    Content = string.Join("\n\n", texts),
                     GroundingDetail = groudingMetadata != null
                         ? new GroundingDetail
                         {
@@ -211,9 +220,9 @@ namespace GeminiDotNET
                         : null,
                 };
 
-                if(modelSuccessResponse != null && modelSuccessResponse.Candidates.Count > 0)
+                if (modelSuccessResponse != null && modelSuccessResponse.Candidates.Count > 0)
                 {
-                    SetChatHistory(modelSuccessResponse.Candidates.Select(c => c.Content).ToList());
+                    SetChatHistory([.. modelSuccessResponse.Candidates.Select(c => c.Content)]);
                 }
 
                 return modelResponse;
@@ -240,7 +249,7 @@ namespace GeminiDotNET
                 return;
             }
 
-            foreach(var content in contents)
+            foreach (var content in contents)
             {
                 if (content == null || content.Parts == null || content.Parts.Count == 0)
                 {
