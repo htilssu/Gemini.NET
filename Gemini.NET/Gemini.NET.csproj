@@ -5,17 +5,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageIcon>icon.png</PackageIcon>
-    <Copyright>© 2025 Phan Xuan Quang / Gemini.NET</Copyright>
-    <PackageProjectUrl>https://github.com/phanxuanquang/Gemini.NET</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/phanxuanquang/Gemini.NET</RepositoryUrl>
+    <Copyright>© 2025 Tran Trung Hieu / Gemini.NET</Copyright>
+    <PackageProjectUrl>https://github.com/htilssu/Gemini.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/htilssu/Gemini.NET</RepositoryUrl>
     <Description>A lightweight SDK enabling integration of Gemini for .NET in a simple way</Description>
     <Company>github.com/phanxuanquang</Company>
-    <Authors>Phan Xuan Quang</Authors>
+    <Authors>Tran Trung Hieu, Phan Xuan Quang </Authors>
     <Title>Gemini.NET</Title>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Version>3.6.0</Version>
+    <PackageId>Gemini.NETE</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

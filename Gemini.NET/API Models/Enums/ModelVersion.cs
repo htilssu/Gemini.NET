@@ -15,6 +15,9 @@ namespace GeminiDotNET.ApiModels.Enums
         [Description("gemini-2.0-flash")]
         Gemini_20_Flash,
 
+        [Description("gemini-2.0-flash-lite")]
+        Gemini_25_Flash_Lite,
+
         [Description("gemini-2.5-flash")]
         Gemini_25_Flash,
 
