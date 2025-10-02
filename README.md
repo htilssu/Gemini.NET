@@ -32,18 +32,18 @@ Install Gemini.NET using the **NuGet Package Manager** in Visual Studio or the .
 
 1. Open your project in Visual Studio.
 2. Go to **Tools > NuGet Package Manager > Manage NuGet Packages for Solution...**
-3. Search for `Gemini.NET` and install the package.
+3. Search for `Gemini.NETE` and install the package.
 
 **Package Manager Console:**
 
 ```powershell
-Install-Package Gemini.NET 
+Install-Package Gemini.NETE
 ```
 
 **.NET CLI:**
 
 ```bash
-dotnet add package Gemini.NET
+dotnet add package Gemini.NETE
 ```
 
 For more detailed instructions, visit the Gemini.NET's [NuGet Gallery page](https://www.nuget.org/packages/Gemini.NET).
