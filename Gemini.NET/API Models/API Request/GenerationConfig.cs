@@ -55,11 +55,7 @@ namespace GeminiDotNET.ApiModels.Request
 
         [JsonProperty("responseSchema")]
         public object? ResponseSchema { get; set; }
-
-        /// <summary>
-        /// The thinking budget for thinking models
-        /// Set -1 for disabling thinking
-        /// </summary>
+        
         [JsonProperty("thinkingConfig")]
         public ThinkingConfig? ThinkingConfig { get; set; }
     }
