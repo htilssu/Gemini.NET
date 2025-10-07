@@ -1,4 +1,5 @@
-﻿using GeminiDotNET.ApiModels.ApiRequest;
+﻿using Gemini.NET.API_Models.API_Request;
+using GeminiDotNET.ApiModels.ApiRequest;
 using GeminiDotNET.ApiModels.ApiRequest.Configurations;
 using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools;
 using GeminiDotNET.ApiModels.ApiRequest.Configurations.Tools.FunctionCalling;
@@ -34,7 +35,8 @@ namespace GeminiDotNET
         {
             if (functionResponses == null || !functionResponses.Any())
             {
-                throw new ArgumentNullException(nameof(functionResponses), "Function calling results can't be null or empty.");
+                throw new ArgumentNullException(nameof(functionResponses),
+                    "Function calling results can't be null or empty.");
             }
             _functionResponses = functionResponses;
             return this;
@@ -44,7 +46,8 @@ namespace GeminiDotNET
         {
             if (string.IsNullOrEmpty(systemInstruction))
             {
-                throw new ArgumentNullException(nameof(systemInstruction), "System instruction can't be an empty string.");
+                throw new ArgumentNullException(nameof(systemInstruction),
+                    "System instruction can't be an empty string.");
             }
 
             _systemInstruction = systemInstruction.Trim();
@@ -55,7 +58,8 @@ namespace GeminiDotNET
         {
             if (config.Temperature < 0.0F || config.Temperature > 2.0F)
             {
-                throw new ArgumentOutOfRangeException(nameof(config), "Temperature must be between 0.0 and 2.0.");
+                throw new ArgumentOutOfRangeException(nameof(config),
+                    "Temperature must be between 0.0 and 2.0.");
             }
 
             _config = config;
@@ -83,48 +87,50 @@ namespace GeminiDotNET
         public ApiRequestBuilder DisableAllSafetySettings()
         {
             _safetySettings =
-                [
-                    new SafetySetting
-                    {
-                        Category = SafetySettingHarmCategory.DangerousContent.GetDescription(),
-                    },
-                    new SafetySetting
-                    {
-                        Category = SafetySettingHarmCategory.Harassment.GetDescription(),
-                    },
-                    new SafetySetting
-                    {
-                        Category = SafetySettingHarmCategory.CivicIntegrity.GetDescription(),
-                    },
-                    new SafetySetting
-                    {
-                        Category = SafetySettingHarmCategory.HateSpeech.GetDescription(),
-                    },
-                    new SafetySetting
-                    {
-                        Category = SafetySettingHarmCategory.SexuallyExplicit.GetDescription(),
-                    },
-                ];
+            [
+                new SafetySetting
+                {
+                    Category = SafetySettingHarmCategory.DangerousContent.GetDescription(),
+                },
+                new SafetySetting
+                {
+                    Category = SafetySettingHarmCategory.Harassment.GetDescription(),
+                },
+                new SafetySetting
+                {
+                    Category = SafetySettingHarmCategory.CivicIntegrity.GetDescription(),
+                },
+                new SafetySetting
+                {
+                    Category = SafetySettingHarmCategory.HateSpeech.GetDescription(),
+                },
+                new SafetySetting
+                {
+                    Category = SafetySettingHarmCategory.SexuallyExplicit.GetDescription(),
+                },
+            ];
 
             return this;
         }
 
-        public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1, int maxOutputTokens = 65536)
+        public ApiRequestBuilder WithDefaultGenerationConfig(float temperature = 1,
+            int maxOutputTokens = 65536)
         {
             if (temperature < 0.0F || temperature > 2.0F)
             {
-                throw new ArgumentOutOfRangeException(nameof(temperature), "Temperature must be between 0.0 and 2.0.");
+                throw new ArgumentOutOfRangeException(nameof(temperature),
+                    "Temperature must be between 0.0 and 2.0.");
             }
 
             if (maxOutputTokens < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxOutputTokens), "Max output tokens must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(maxOutputTokens),
+                    "Max output tokens must be greater than 0.");
             }
 
             _config = new GenerationConfig
             {
-                Temperature = temperature,
-                MaxOutputTokens = maxOutputTokens
+                Temperature = temperature, MaxOutputTokens = maxOutputTokens
             };
 
             return this;
@@ -189,12 +195,22 @@ namespace GeminiDotNET
             return this;
         }
 
+        public ApiRequestBuilder WithThinkingBudget(int thinkingBudget = 8192)
+        {
+            if (_config == null)
+            {
+                _config = new GenerationConfig();
+            }
+
+            _config.ThinkingConfig ??= new ThinkingConfig();
+            return this;
+        }
+
         public ApiRequestBuilder WithUploadedFile(string fileUri, MimeType mimeType)
         {
             _file = new FileData
             {
-                MimeType = EnumHelper.GetDescription(mimeType),
-                FileUri = fileUri
+                MimeType = EnumHelper.GetDescription(mimeType), FileUri = fileUri
             };
 
             return this;
@@ -229,8 +245,7 @@ namespace GeminiDotNET
                         {
                             InlineData = new InlineData
                             {
-                                MimeType = i.MimeType.GetDescription(),
-                                Data = i.Base64Data
+                                MimeType = i.MimeType.GetDescription(), Data = i.Base64Data
                             }
                         })
                         .ToList(),
@@ -242,10 +257,13 @@ namespace GeminiDotNET
             {
                 contents.Add(new Content
                 {
-                    Parts = [ new Part
-                    {
-                        FileData = _file
-                    } ],
+                    Parts =
+                    [
+                        new Part
+                        {
+                            FileData = _file
+                        }
+                    ],
                     Role = Role.User.GetDescription(),
                 });
             }
@@ -254,11 +272,14 @@ namespace GeminiDotNET
             {
                 contents.Add(new Content
                 {
-                    Parts = [.. _functionResponses
-                        .Select(c => new Part
-                        {
-                            FunctionResponse = c
-                        })],
+                    Parts =
+                    [
+                        .. _functionResponses
+                            .Select(c => new Part
+                            {
+                                FunctionResponse = c
+                            })
+                    ],
                     Role = Role.User.GetDescription(),
                 });
             }
