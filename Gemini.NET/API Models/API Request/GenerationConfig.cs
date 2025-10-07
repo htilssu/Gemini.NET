@@ -1,4 +1,5 @@
-﻿using GeminiDotNET.Helpers;
+﻿using Gemini.NET.API_Models.API_Request;
+using GeminiDotNET.Helpers;
 using Newtonsoft.Json;
 
 namespace GeminiDotNET.ApiModels.Request
@@ -54,5 +55,8 @@ namespace GeminiDotNET.ApiModels.Request
 
         [JsonProperty("responseSchema")]
         public object? ResponseSchema { get; set; }
+        
+        [JsonProperty("thinkingConfig")]
+        public ThinkingConfig? ThinkingConfig { get; set; }
     }
 }
